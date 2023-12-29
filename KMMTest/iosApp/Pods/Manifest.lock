@@ -1,8 +1,14 @@
 PODS:
   - SharedModule (1.0)
+  - Stinsen (2.0.7)
 
 DEPENDENCIES:
   - SharedModule (from `../SharedModule`)
+  - Stinsen
+
+SPEC REPOS:
+  trunk:
+    - Stinsen
 
 EXTERNAL SOURCES:
   SharedModule:
@@ -10,7 +16,8 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   SharedModule: 4cc414136531a0cae9284f127d6cd025adfb5a99
+  Stinsen: b1c34553e21ca4f1ba53bc29cb30e71e8cce811c
 
-PODFILE CHECKSUM: 1dc121b0c2952f1cd9cca2e4e0ea8a0ab57f2434
+PODFILE CHECKSUM: 117b2c201782b1e662118c2d41c8a27081ac999b
 
 COCOAPODS: 1.13.0

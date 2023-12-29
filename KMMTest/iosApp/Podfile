@@ -2,6 +2,7 @@ target 'iosApp' do
   use_frameworks!
   platform :ios, '15.0'
   pod 'SharedModule', :path => '../SharedModule'
+  pod 'Stinsen'
 end
 
 post_install do |installer|

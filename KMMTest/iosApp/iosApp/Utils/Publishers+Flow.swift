@@ -9,7 +9,7 @@
 import Combine
 import SharedModule
 
-enum SomeError: Error {
+enum SomeError: Swift.Error {
     case some(String)
 }
 

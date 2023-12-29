@@ -14,6 +14,9 @@ object Dependencies {
             const val core = "io.ktor:ktor-client-core:$version"
             const val okHttp = "io.ktor:ktor-client-okhttp:$version"
             const val darwin = "io.ktor:ktor-client-darwin:$version"
+            const val webSocket = "io.ktor:ktor-client-websockets:$version"
+            const val negotiation = "io.ktor:ktor-client-content-negotiation:$version"
+            const val json = "io.ktor:ktor-serialization-kotlinx-json:$version"
         }
 
         object SQL {
