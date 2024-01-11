@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import UIElements
 
 public struct StateableTextFiledView: View {
     
@@ -85,7 +84,6 @@ public struct StateableTextFiledView: View {
                             .font(.system(size: 16, weight: .regular))
                             .foregroundStyle(colorScheme == .dark ? .white : .black)
                             .lineLimit(2)
-                            
                             .padding(.horizontal, 8)
                             .transition(.opacity)
                     }

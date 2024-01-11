@@ -22,7 +22,12 @@
 		ED92C3E92B38A76600B6E962 /* UIElements.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ED92C3E82B38A76600B6E962 /* UIElements.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		ED92C4062B38C28700B6E962 /* UIElements.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = ED92C3E82B38A76600B6E962 /* UIElements.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		ED92C4082B39ADD500B6E962 /* AuthCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED92C4072B39ADD500B6E962 /* AuthCoordinator.swift */; };
-		ED92C4112B3DEFE200B6E962 /* StateableTextFiledView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED92C4102B3DEFE200B6E962 /* StateableTextFiledView.swift */; };
+		ED92C4172B47E77600B6E962 /* ChatCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED92C4162B47E77600B6E962 /* ChatCell.swift */; };
+		ED92C41A2B480E7300B6E962 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED92C4192B480E7300B6E962 /* SplashView.swift */; };
+		ED92C41C2B480E8000B6E962 /* SplashCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED92C41B2B480E8000B6E962 /* SplashCoordinator.swift */; };
+		ED92C41F2B4940DE00B6E962 /* AppTheme+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED92C41E2B4940DE00B6E962 /* AppTheme+Extension.swift */; };
+		ED92C4232B4D906400B6E962 /* ComponentsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED92C4222B4D906400B6E962 /* ComponentsHandler.swift */; };
+		ED92C4252B4F243800B6E962 /* ChildStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED92C4242B4F243800B6E962 /* ChildStack.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -71,7 +76,12 @@
 		ED92C3E82B38A76600B6E962 /* UIElements.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = UIElements.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED92C4072B39ADD500B6E962 /* AuthCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthCoordinator.swift; sourceTree = "<group>"; };
 		ED92C4092B39B4D200B6E962 /* Stinsen.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Stinsen.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		ED92C4102B3DEFE200B6E962 /* StateableTextFiledView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StateableTextFiledView.swift; sourceTree = "<group>"; };
+		ED92C4162B47E77600B6E962 /* ChatCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCell.swift; sourceTree = "<group>"; };
+		ED92C4192B480E7300B6E962 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
+		ED92C41B2B480E8000B6E962 /* SplashCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashCoordinator.swift; sourceTree = "<group>"; };
+		ED92C41E2B4940DE00B6E962 /* AppTheme+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppTheme+Extension.swift"; sourceTree = "<group>"; };
+		ED92C4222B4D906400B6E962 /* ComponentsHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentsHandler.swift; sourceTree = "<group>"; };
+		ED92C4242B4F243800B6E962 /* ChildStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChildStack.swift; sourceTree = "<group>"; };
 		EE2ABA119E1241A7B2E92ACD /* Pods-iosApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-iosApp.debug.xcconfig"; path = "Target Support Files/Pods-iosApp/Pods-iosApp.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -156,6 +166,8 @@
 			isa = PBXGroup;
 			children = (
 				ED04C0752AC096DE00B6DF0D /* Publishers+Flow.swift */,
+				ED92C4222B4D906400B6E962 /* ComponentsHandler.swift */,
+				ED92C4242B4F243800B6E962 /* ChildStack.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -181,7 +193,7 @@
 		ED75F3862B384D0600851869 /* Auth */ = {
 			isa = PBXGroup;
 			children = (
-				ED92C4102B3DEFE200B6E962 /* StateableTextFiledView.swift */,
+				ED92C41D2B4940CD00B6E962 /* Extensions */,
 				ED75F3872B384D1100851869 /* AuthView.swift */,
 				ED92C4072B39ADD500B6E962 /* AuthCoordinator.swift */,
 			);
@@ -200,6 +212,7 @@
 		ED92C3D22B388B8D00B6E962 /* UserStories */ = {
 			isa = PBXGroup;
 			children = (
+				ED92C4182B480E5C00B6E962 /* Splash */,
 				ED04C07B2AD4AEB200B6DF0D /* Main */,
 				ED75F3862B384D0600851869 /* Auth */,
 			);
@@ -210,8 +223,26 @@
 			isa = PBXGroup;
 			children = (
 				ED75F3842B371F8C00851869 /* MessageView.swift */,
+				ED92C4162B47E77600B6E962 /* ChatCell.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		ED92C4182B480E5C00B6E962 /* Splash */ = {
+			isa = PBXGroup;
+			children = (
+				ED92C4192B480E7300B6E962 /* SplashView.swift */,
+				ED92C41B2B480E8000B6E962 /* SplashCoordinator.swift */,
+			);
+			path = Splash;
+			sourceTree = "<group>";
+		};
+		ED92C41D2B4940CD00B6E962 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				ED92C41E2B4940DE00B6E962 /* AppTheme+Extension.swift */,
+			);
+			path = Extensions;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -337,13 +368,18 @@
 			files = (
 				ED92C4082B39ADD500B6E962 /* AuthCoordinator.swift in Sources */,
 				ED04C0E12B25DA6A00B6DF0D /* SomeNew.c in Sources */,
+				ED92C4232B4D906400B6E962 /* ComponentsHandler.swift in Sources */,
 				ED92C3D12B388B3000B6E962 /* Flowable.swift in Sources */,
 				ED04C0762AC096DE00B6DF0D /* Publishers+Flow.swift in Sources */,
+				ED92C4252B4F243800B6E962 /* ChildStack.swift in Sources */,
 				ED75F3852B371F8C00851869 /* MessageView.swift in Sources */,
+				ED92C41A2B480E7300B6E962 /* SplashView.swift in Sources */,
+				ED92C4172B47E77600B6E962 /* ChatCell.swift in Sources */,
 				2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */,
 				7555FF83242A565900829871 /* MainView.swift in Sources */,
-				ED92C4112B3DEFE200B6E962 /* StateableTextFiledView.swift in Sources */,
+				ED92C41F2B4940DE00B6E962 /* AppTheme+Extension.swift in Sources */,
 				ED75F3882B384D1100851869 /* AuthView.swift in Sources */,
+				ED92C41C2B480E8000B6E962 /* SplashCoordinator.swift in Sources */,
 				ED04C07A2AD43C6700B6DF0D /* DropDownTextField.swift in Sources */,
 				ED04C0B82B09E11300B6DF0D /* CardInfoView.swift in Sources */,
 			);
@@ -483,11 +519,12 @@
 				DEVELOPMENT_TEAM = 88DU546X6V;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = iosApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-l\"c++\"",
@@ -517,11 +554,12 @@
 				DEVELOPMENT_TEAM = 88DU546X6V;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = iosApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-l\"c++\"",

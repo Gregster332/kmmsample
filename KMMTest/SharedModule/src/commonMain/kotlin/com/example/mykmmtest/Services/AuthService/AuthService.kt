@@ -17,6 +17,7 @@ import io.ktor.util.Identity.decode
 import io.ktor.util.InternalAPI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
@@ -45,8 +46,9 @@ class AuthServiceImpl(private val setting: SecurePersistant): AuthService, KoinC
         }
     }
 
-    override suspend fun sendAuthRequest(entity: SendAuthRequestEntity) = runBlocking {
-        val url = "http://localhost:8080/login"
+    //10.0.2.2
+    override suspend fun sendAuthRequest(entity: SendAuthRequestEntity) = withContext(Dispatchers.IO) {
+        val url = "http://localhost.proxyman.io:8080/login"
         try {
             val response = client.post(url) {
                 contentType(ContentType.Application.Json)
@@ -64,7 +66,7 @@ class AuthServiceImpl(private val setting: SecurePersistant): AuthService, KoinC
         try {
             when (val token = setting.getValue("auth_token")) {
                 is String -> {
-                    val response = client.request("http://localhost:8080/isAuthorizedUser") {
+                    val response = client.request("http://localhost.proxyman.io:8080/isAuthorizedUser") {
                         method = HttpMethod.Get
                         headers.append("Authorization", "Bearer ${token!!}")
                     }.bodyAsText()

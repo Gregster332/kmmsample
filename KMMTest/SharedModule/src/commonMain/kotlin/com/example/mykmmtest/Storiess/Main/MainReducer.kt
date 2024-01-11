@@ -23,7 +23,9 @@ internal class MainReducer : Reducer<MainStore.State, MainStoreFactory.Message> 
         is MainStoreFactory.Message.DidReceiveData -> copy(
             messages = reduceMessages(copy().messages, msg.message)
         )
-        else -> copy()
+        is MainStoreFactory.Message.OnChatsLoaded -> copy(
+            chats = msg.chats
+        )
     }
 
     private fun reduceMessages(hist: List<WsMessage>, new: WsMessage): List<WsMessage> {

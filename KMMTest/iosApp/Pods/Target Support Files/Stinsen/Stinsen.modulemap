@@ -1,6 +1,0 @@
-framework module Stinsen {
-  umbrella header "Stinsen-umbrella.h"
-
-  export *
-  module * { export * }
-}

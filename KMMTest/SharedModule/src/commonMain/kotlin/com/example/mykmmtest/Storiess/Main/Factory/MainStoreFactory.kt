@@ -3,6 +3,7 @@ package com.example.mykmmtest.Storiess.Main.Factory
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.example.mykmmtest.Models.Post
+import com.example.mykmmtest.Services.ChatUnit
 import com.example.mykmmtest.Services.PostLoader
 import com.example.mykmmtest.Services.WebSocketService
 import com.example.mykmmtest.Services.WsMessage
@@ -22,7 +23,7 @@ internal class MainStoreFactory(
             initialState = MainStore.State(posts = null),
             bootstrapper = null,
             executorFactory = {
-                MainExecutor(webSocketService)
+                MainExecutor(repo)
             },
             reducer = MainReducer()
         ) {}
@@ -31,7 +32,7 @@ internal class MainStoreFactory(
         object SetLoading : Message
         data class SetUserInfo(val posts: List<Post>) : Message
         object SetError : Message
-        object OnDeleteTap: Message
+        data class OnChatsLoaded(val chats: List<ChatUnit>): Message
         data class DidReceiveData(val message: WsMessage): Message
     }
 }

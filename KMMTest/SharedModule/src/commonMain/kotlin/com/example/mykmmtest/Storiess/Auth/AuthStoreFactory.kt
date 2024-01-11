@@ -12,11 +12,13 @@ import com.example.mykmmtest.Storiess.Main.BaseExecutor
 import com.example.mykmmtest.Storiess.Main.Factory.MainStoreFactory
 import com.example.mykmmtest.Storiess.Main.MainStore
 import com.example.mykmmtest.Storiess.Main.Presentation.UIMainState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 
 interface AuthStore : Store<AuthStore.Intent, AuthStore.UIAuthState, Nothing> {
-    data class UIAuthState internal constructor(
+    data class UIAuthState(
         val nickname: Field = Field(),
         val phoneNumberState: Field = Field(),
         val passwordState: Field = Field(),
@@ -36,7 +38,6 @@ interface AuthStore : Store<AuthStore.Intent, AuthStore.UIAuthState, Nothing> {
         data class ValidatePhoneNumber(val text: String): Intent
         data class ValidatePassword(val text: String): Intent
         data class IsEnableButton(val value: Boolean): Intent
-        data object TryAuthToken : Intent
         data object TryAuthPassword : Intent
     }
 }
@@ -64,6 +65,7 @@ class AuthStoreFactory(
         data class IsButtonEnable(val value: Boolean): AuthMessage
         data object Success: AuthMessage
         data class OnError(val s: String): AuthMessage
+        data object ResetError: AuthMessage
     }
 
     internal class AuthExecutor(
@@ -77,7 +79,6 @@ class AuthStoreFactory(
             is AuthStore.Intent.ValidatePhoneNumber -> validatePhoneNumber(intent.text)
             is AuthStore.Intent.ValidatePassword -> validatePassword(intent.text)
             is AuthStore.Intent.IsEnableButton -> dispatch(AuthMessage.IsButtonEnable(intent.value))
-            is AuthStore.Intent.TryAuthToken -> tokenAuth()
             is AuthStore.Intent.TryAuthPassword -> passwordAuth(
                 getState()
             )
@@ -118,14 +119,16 @@ class AuthStoreFactory(
                 dispatch(AuthMessage.PasswordField(field = AuthStore.Field(t, isError = true)))
         }
 
-        private suspend fun tokenAuth() {
-            try {
-                val state = authService.trySignInWithToken()
-                if (state.state.isAuthorized) dispatch(AuthMessage.Success) else dispatch(AuthMessage.OnError("Empty"))
-            } catch(e: Exception) {
-                dispatch(AuthMessage.OnError(e.message ?: ""))
-            }
-        }
+//        private suspend fun tokenAuth() {
+//            try {
+//                val state = authService.trySignInWithToken()
+//                if (state.state.isAuthorized) dispatch(AuthMessage.Success) else dispatch(AuthMessage.OnError("Empty"))
+//            } catch(e: Exception) {
+//                dispatch(AuthMessage.OnError(e.message ?: ""))
+//                delay(3000L)
+//                dispatch(AuthMessage.ResetError)
+//            }
+//        }
 
         private suspend fun passwordAuth(
             currentState: AuthStore.UIAuthState
@@ -171,7 +174,9 @@ class AuthStoreFactory(
             is AuthMessage.Success -> copy(
                 isSuccess = true
             )
+            is AuthMessage.ResetError -> copy(
+                errorMessage = null
+            )
         }
     }
 }
-

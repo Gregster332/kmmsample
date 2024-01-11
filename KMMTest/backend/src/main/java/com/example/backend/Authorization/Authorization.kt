@@ -8,6 +8,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.application.install
+import io.ktor.server.application.log
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.JWTPrincipal
@@ -19,7 +20,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
-import org.h2.engine.User
 import java.util.Date
 
 fun Application.configureAuth() {
@@ -30,21 +30,16 @@ fun Application.configureAuth() {
             verifier(
                 JWT
                     .require(Algorithm.HMAC256("secret"))
-                    .withAudience("audience")
                     .withIssuer("issuer")
                     .build()
             )
 
             validate { credentials ->
-                println(credentials.expiresAt?.time == Date().time)
-                println(Date().time - (credentials.expiresAt?.time ?: 0))
-                println((Date().time - (credentials.expiresAt?.time ?: 0)) > 100000)
-
                 if (
                     credentials.payload.getClaim("nickname").asString() != "" &&
                     credentials.payload.getClaim("phone_number").asString() != ""
                 ) {
-                    //println("Succ ${credentials.payload.getClaim("username")}")
+                    println("Succ ${credentials.payload.getClaim("nickname")}")
                     JWTPrincipal(credentials.payload)
                 } else {
                     println("fail")
@@ -60,11 +55,13 @@ fun Application.configureAuth() {
 
     routing {
         post("/login") {
+            //call.application.log.info("🔴 Login attempt for call ${call.request}")
             var userAuthData: UserAUTH? = null
 
             try {
                 userAuthData = call.receive()
             } catch (e: Exception) {
+                println("decode data login error $e")
                 call.respond(
                     HttpStatusCode.BadRequest,
                     "Ooops! Some user data in request was missed! Double-check your request and repeat"
@@ -73,13 +70,13 @@ fun Application.configureAuth() {
             }
 
             if (userAuthData == null) {
+                println("decoded data null login")
                 call.respond(
                     HttpStatusCode.BadRequest,
                     "Ooops! User data from request is NULL! Double-check your request and repeat"
                 )
             } else {
                 val token = JWT.create()
-                    .withAudience("audience")
                     .withIssuer("issuer")
                     .withClaim("phone_number", userAuthData?.phoneNumber)
                     .withClaim("nickname", userAuthData?.nickname)
@@ -94,8 +91,10 @@ fun Application.configureAuth() {
             get("/isAuthorizedUser") {
                 var principal: JWTPrincipal? = null
                 try {
+                    println(call.principal<JWTPrincipal>())
                     principal = call.principal()
                 } catch(e: Exception) {
+                    println("decode data error isAuth $e")
                     call.respond(
                         HttpStatusCode.BadRequest,
                         "JWT token is empty for this session. Try to sign in with your credentials"
@@ -104,6 +103,7 @@ fun Application.configureAuth() {
                 }
 
                 if (principal == null) {
+                    println("decoded data null isAuth")
                     call.respond(
                         HttpStatusCode.BadRequest,
                         "JWT token is empty for this session. Try to sign in with your credentials"

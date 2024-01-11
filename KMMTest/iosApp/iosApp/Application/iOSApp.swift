@@ -1,33 +1,31 @@
 import SwiftUI
 import SharedModule
-import Stinsen
 import UIElements
 
 @main
 struct MainApp: App {
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @AppStorage("app_theme") private var appTheme: AppTheme = .systemDefault
+    @ObservedObject private var coordinator = Coordinator.shared
     
     init() {
-        KoinKt.doInitKoinIOS()
+        let kk = Multiplatform_settingsKeychainSettings(service: "default_serv")
+        IosMainDIKt.doInitKoinIOS(settings: kk)
     }
     
     var body: some Scene {
         WindowGroup {
-            DefaultAuthCoordinator().view()
+            //NavigationStack(path: $coordinator.path) {
+                SplashView()
                 .preferredColorScheme(appTheme.scheme)
-        }
-    }
-}
-
-class AppDelegate: NSObject, UIApplicationDelegate {
-    
-    var window: UIWindow?
-
-    func application(_ application: UIApplication,
-                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
-    ) -> Bool {
-        self.window = UIWindow(frame: UIScreen.main.bounds)
-        return true
+//                    .navigationDestination(for: Coordinator.Path.self) { path in
+//                        switch path {
+//                        case .auth:
+//                            AuthView()
+//                        case .main:
+//                            MainView()
+//                        }
+//                    }
+            }
+            
     }
 }

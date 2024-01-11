@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.koin.core.component.KoinComponent
 
 class MainViewModel(
     private val store: MainStore,
@@ -34,8 +35,7 @@ class MainViewModel(
             store.states.map { value -> stateMapper.map(value) } bindTo (::acceptState)
         }
         binder.start()
-        store.accept(MainStore.Intent.Load)
-        store.accept(MainStore.Intent.OnConnect)
+        store.accept(MainStore.Intent.LoadChats)
 
         viewModelScope.launch {
             mutableState
@@ -44,6 +44,10 @@ class MainViewModel(
                     println(it)
                 }
         }
+    }
+
+    fun createNewChat(name: String) {
+        store.accept(MainStore.Intent.OnCreateNewChat(name))
     }
 
     fun tapSendMessage(message: String) {

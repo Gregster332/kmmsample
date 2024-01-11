@@ -10,6 +10,7 @@ final class MainViewModelWrapper: ObservableObject {
     @Published var posts: [Post]?
     @Published var isLoading = false
     @Published var messages: [WsMessage] = []
+    @Published var chats: [ChatUnit] = []
     
     private var canc = Set<AnyCancellable>()
     
@@ -26,6 +27,7 @@ final class MainViewModelWrapper: ObservableObject {
                 self.isLoading = value.isLoading
                 self.posts = value.posts
                 self.messages = value.messages
+                self.chats = value.chats
             }
             .store(in: &canc)
     }
@@ -37,72 +39,98 @@ final class MainViewModelWrapper: ObservableObject {
     func sendMessage(message: String) {
         mainViewModel.tapSendMessage(message: message)
     }
+    
+    func createNewChat(name: String) {
+        mainViewModel.createNewChat(name: name)
+    }
 }
 
 struct MainView: View {
     
     @FocusState private var keyboardFocuse
-    @SwiftUI.State private var text = ""
-    //@EnvironmentObject var coodrinator: FlowCoordinator
+    @State private var isPresentedCreate = false
+    @State private var lastCaretedChatName = ""
     @StateObject private var wrapper = MainViewModelWrapper()
-//    @State private var messages = [
-//    WsMessage(userId: "0", userName: "Nick", text: "2121"),
-//    WsMessage(userId: "1", userName: "Jack", text: "Hello"),
-//    WsMessage(userId: "0", userName: "Nick", text: "a"),
-//    WsMessage(userId: "1", userName: "Jack", text: "sds dsds aasdasd dsds dfdfd gfgf sds dsd fsf"),
-//    WsMessage(userId: "0", userName: "Nick", text: "vb"),
-//    WsMessage(userId: "1", userName: "Jack", text: "olld ppgr jsdg ofdj osdi csw"),
-//    WsMessage(userId: "0", userName: "Nick", text: "8vg  83673y hcd88 fhud721"),
-//    WsMessage(userId: "1", userName: "Jack", text: "adsio"),
-//    WsMessage(userId: "0", userName: "Nick", text: "iii"),
-//    ]
     
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
-                LazyVStack(spacing: 0) {
-                    ForEach(wrapper.messages, id: \.self) { message in
-                        MessageView(message: message)
-                            .rotationEffect(.radians(.pi))
-                    }
+                ForEach(wrapper.chats, id: \.self) { i in
+                    ChatCell(name: i.name)
                 }
             }
-            .rotationEffect(.radians(.pi))
+//            ScrollView {
+//                LazyVStack(spacing: 0) {
+//                    ForEach(wrapper.messages, id: \.self) { message in
+//                        MessageView(message: message)
+//                            .rotationEffect(.radians(.pi))
+//                    }
+//                }
+//            }
+//            .rotationEffect(.radians(.pi))
             
-            inputView()
+            //inputView()
         }
         .onDisappear {
             wrapper.onDisappear()
         }
+        .toolbar(content: {
+            ToolbarItem(placement: .principal) {
+                Text("Chats")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(.primary)
+            }
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    isPresentedCreate.toggle()
+                } label: {
+                    Text("Add")
+                }
+                .alert(
+                    "Hello",
+                    isPresented: $isPresentedCreate) {
+                        TextField("dsds", text: $lastCaretedChatName)
+                        Button("Send", action: {
+                            wrapper.createNewChat(name: lastCaretedChatName)
+                            isPresentedCreate.toggle()
+                        })
+                    } message: {
+                        Text("Message here")
+                    }
+            }
+        })
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
     }
     
-    @ViewBuilder
-    private func inputView() -> some View {
-        HStack {
-            TextField("", text: $text)
-                .focused($keyboardFocuse)
-                .foregroundStyle(.white)
-                .padding(6)
-                .background(Color.black.opacity(0.7))
-                .clipShape(Capsule())
-            
-            Button {
-                wrapper.sendMessage(message: text)
-            } label: {
-                Image(systemName: "arrow.up")
-                    .font(.system(size: 23))
-                    .padding(6)
-                    .background(Color.blue.opacity(0.2))
-                    .clipShape(Capsule(style: .circular))
-            }
-
-        }
-        .padding(8)
-        .background {
-            Color.black.opacity(0.7)
-                .ignoresSafeArea(edges: .bottom)
-        }
-    }
+//    @ViewBuilder
+//    private func inputView() -> some View {
+//        HStack {
+//            TextField("", text: $text)
+//                .focused($keyboardFocuse)
+//                .foregroundStyle(.white)
+//                .padding(6)
+//                .background(Color.black.opacity(0.7))
+//                .clipShape(Capsule())
+//            
+//            Button {
+//                wrapper.sendMessage(message: text)
+//            } label: {
+//                Image(systemName: "arrow.up")
+//                    .font(.system(size: 23))
+//                    .padding(6)
+//                    .background(Color.blue.opacity(0.2))
+//                    .clipShape(Capsule(style: .circular))
+//            }
+//
+//        }
+//        .padding(8)
+//        .background {
+//            Color.black.opacity(0.7)
+//                .ignoresSafeArea(edges: .bottom)
+//        }
+//    }
 }
 
 #Preview {

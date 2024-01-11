@@ -3,12 +3,12 @@ plugins {
     kotlin("native.cocoapods")
     id("com.android.library")
     kotlin("plugin.serialization") version "1.9.10"
+    id("kotlin-parcelize")
     id("app.cash.sqldelight") version "2.0.0"
 }
 
-@OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
 kotlin {
-    targetHierarchy.default()
+   //targetHierarchy.default()
 
     androidTarget {
         compilations.all {
@@ -17,27 +17,26 @@ kotlin {
             }
         }
     }
-    //ios()
+
     iosX64()
     iosArm64()
     iosSimulatorArm64()
 
-    //ios {
-        cocoapods {
-            summary = "Some description for the Shared Module"
-            homepage = "Link to the Shared Module homepage"
-            version = "1.0"
-            ios.deploymentTarget = "15.0"
-            podfile = project.file("../iosApp/Podfile")
-            framework {
-                baseName = "SharedModule"
+    cocoapods {
+        summary = "Some description for the Shared Module"
+        homepage = "Link to the Shared Module homepage"
+        version = "1.0"
+        ios.deploymentTarget = "16.0"
+        podfile = project.file("../iosApp/Podfile")
+        framework {
+            baseName = "SharedModule"
 
-                export(Dependencies.KmmViewModel.cFlow)
-                export(Dependencies.KmmViewModel.core)
-                export(Dependencies.LiveData.liveData)
-            }
+            export(Dependencies.KmmViewModel.cFlow)
+            export(Dependencies.KmmViewModel.core)
+            export(Dependencies.Decompose.decompose)
+            export("com.arkivanov.essenty:lifecycle:1.2.0")
         }
-    //}
+    }
     
     sourceSets {
         val commonMain by getting {
@@ -56,8 +55,9 @@ kotlin {
                 implementation(Dependencies.Koin.core)
                 api(Dependencies.KmmViewModel.core)
                 api(Dependencies.KmmViewModel.cFlow)
-                api(Dependencies.LiveData.liveData)
-                implementation("com.russhwolf:multiplatform-settings:1.1.1")
+                implementation(Dependencies.Settings.settings)
+                api(Dependencies.Decompose.decompose)
+                api("com.arkivanov.essenty:lifecycle:1.2.0")
             }
         }
         val commonTest by getting {
@@ -72,10 +72,20 @@ kotlin {
                 implementation(Dependencies.Koin.android)
             }
         }
-        val iosMain by getting {
+
+        val iosX64Main by getting
+        val iosArm64Main by getting
+        val iosSimulatorArm64Main by getting
+
+        val iosMain by creating {
+            dependsOn(commonMain)
+            iosX64Main.dependsOn(this)
+            iosArm64Main.dependsOn(this)
+            iosSimulatorArm64Main.dependsOn(this)
             dependencies {
                 implementation(Dependencies.Kotlin.Ktor.darwin)
                 implementation(Dependencies.Kotlin.SQL.ios)
+                api(Dependencies.Decompose.decompose)
             }
         }
     }
@@ -83,7 +93,7 @@ kotlin {
 
 android {
     namespace = "com.example.mykmmtest"
-    compileSdk = 33
+    compileSdk = 34
     defaultConfig {
         minSdk = 31
     }

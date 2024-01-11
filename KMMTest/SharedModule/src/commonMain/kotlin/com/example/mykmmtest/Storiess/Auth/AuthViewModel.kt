@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
 import kotlin.time.Duration
 
 class AuthViewModel(
@@ -56,9 +57,9 @@ class AuthViewModel(
         store.accept(AuthStore.Intent.ValidatePassword(text))
     }
 
-    fun trySingInWithToken() {
-        store.accept(AuthStore.Intent.TryAuthToken)
-    }
+//    fun trySingInWithToken() {
+//        store.accept(AuthStore.Intent.TryAuthToken)
+//    }
 
     fun trySignUp() {
         store.accept(AuthStore.Intent.TryAuthPassword)
