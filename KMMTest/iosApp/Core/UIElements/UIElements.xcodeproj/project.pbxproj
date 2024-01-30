@@ -39,6 +39,7 @@
 			children = (
 				ED92C3FA2B38ABA800B6E962 /* UIElements */,
 				ED92C3F92B38ABA800B6E962 /* Products */,
+				ED92C42F2B55AB8100B6E962 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -68,6 +69,13 @@
 				ED92C4202B49ABC400B6E962 /* StateableTextFiledView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		ED92C42F2B55AB8100B6E962 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

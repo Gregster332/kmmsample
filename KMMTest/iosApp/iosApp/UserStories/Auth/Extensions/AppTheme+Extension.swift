@@ -8,16 +8,3 @@
 
 import UIElements
 import SwiftUI
-
-extension AppTheme {
-    var scheme: ColorScheme? {
-        switch self {
-        case .systemDefault:
-            return nil
-        case .dark:
-            return .dark
-        case .light:
-            return .light
-        }
-    }
-}

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+
+     <!--  Auth  -->
+
+    <string name="auth_screen_title">Authorization</string>
+    <string name="nickname_field_title">Nickname</string>
+    <string name="phone_field_title">Email</string>
+    <string name="password_field_title">Password</string>
+</resources>

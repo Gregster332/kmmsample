@@ -1,11 +1,9 @@
 package com.example.mykmmtest.Services.SocketServiceImpl
 
 import com.example.mykmmtest.Services.PlatformListener
-import com.example.mykmmtest.Services.SecurePersistant.SecurePersistant
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import platform.Foundation.NSData
-import platform.Foundation.NSError
 import platform.Foundation.NSOperationQueue.Companion.currentQueue
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLSession
@@ -23,7 +21,7 @@ actual class SocketServiceImpl actual constructor(
     private val socketEndpoint = NSURL.URLWithString(url)!!
     private var webSocket: NSURLSessionWebSocketTask? = null
 
-    private val settings by inject<SecurePersistant>()
+    //private val settings by inject<SecurePersistant>()
 
     actual fun open(listener: PlatformListener) {
         val urlSession = NSURLSession.sessionWithConfiguration(
@@ -48,8 +46,8 @@ actual class SocketServiceImpl actual constructor(
             delegateQueue = currentQueue()
         )
 
-        val token = settings.getValue("auth_token") ?: ""
-        socketEndpoint.setValue("Bearer $token", "Authorization")
+//        val token = settings.getValue("auth_token") ?: ""
+//        socketEndpoint.setValue("Bearer $token", "Authorization")
 
         webSocket = urlSession.webSocketTaskWithURL(socketEndpoint)
         listenMessages(listener)

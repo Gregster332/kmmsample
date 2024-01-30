@@ -5,31 +5,29 @@ import ActivityKit
 
 final class MainViewModelWrapper: ObservableObject {
     
-    private let mainViewModel: MainViewModel
+    //private let mainViewModel: MainViewModel
     
-    @Published var posts: [Post]?
     @Published var isLoading = false
     @Published var messages: [WsMessage] = []
     @Published var chats: [ChatUnit] = []
     
     private var canc = Set<AnyCancellable>()
     
-    init(mainViewModel: MainViewModel = IosMainDI().mainViewModel()) {
-        self.mainViewModel = mainViewModel
-        bindUI()
-    }
+//    init(mainViewModel: MainViewModel = IosMainDI().mainViewModel()) {
+//        self.mainViewModel = mainViewModel
+//        bindUI()
+//    }
     
     private func bindUI() {
-        FlowPublisher<UIMainState>(flow: mainViewModel.state)
-            .receive(on: RunLoop.main)
-            .sink { [weak self] value in
-                guard let self = self else { return }
-                self.isLoading = value.isLoading
-                self.posts = value.posts
-                self.messages = value.messages
-                self.chats = value.chats
-            }
-            .store(in: &canc)
+//        FlowPublisher<UIMainState>(flow: mainViewModel.state)
+//            .receive(on: RunLoop.main)
+//            .sink { [weak self] value in
+//                guard let self = self else { return }
+//                self.isLoading = value.isLoading
+//                self.messages = value.messages
+//                self.chats = value.chats
+//            }
+//            .store(in: &canc)
     }
     
     func onDisappear() {
@@ -37,11 +35,11 @@ final class MainViewModelWrapper: ObservableObject {
     }
     
     func sendMessage(message: String) {
-        mainViewModel.tapSendMessage(message: message)
+        //mainViewModel.tapSendMessage(message: message)
     }
     
     func createNewChat(name: String) {
-        mainViewModel.createNewChat(name: name)
+        //mainViewModel.createNewChat(name: name)
     }
 }
 
@@ -53,23 +51,24 @@ struct MainView: View {
     @StateObject private var wrapper = MainViewModelWrapper()
     
     var body: some View {
+        //            ScrollView {
+        //                LazyVStack(spacing: 0) {
+        //                    ForEach(wrapper.messages, id: \.self) { message in
+        //                        MessageView(message: message)
+        //                            .rotationEffect(.radians(.pi))
+        //                    }
+        //                }
+        //            }
+        //            .rotationEffect(.radians(.pi))
+                    
+                    //inputView()
         VStack(spacing: 0) {
             ScrollView {
                 ForEach(wrapper.chats, id: \.self) { i in
                     ChatCell(name: i.name)
                 }
             }
-//            ScrollView {
-//                LazyVStack(spacing: 0) {
-//                    ForEach(wrapper.messages, id: \.self) { message in
-//                        MessageView(message: message)
-//                            .rotationEffect(.radians(.pi))
-//                    }
-//                }
-//            }
-//            .rotationEffect(.radians(.pi))
-            
-            //inputView()
+
         }
         .onDisappear {
             wrapper.onDisappear()

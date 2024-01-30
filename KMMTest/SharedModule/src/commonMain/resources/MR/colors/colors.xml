@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="backgroundColor">
+        <light>#F0F0F0</light>
+        <dark>#222331</dark>
+    </color>
+    <color name="textPrimary">
+        <light>#1B1B1D</light>
+        <dark>#FDFDFD</dark>
+    </color>
+    <color name="errorStateMainColor">#F60606</color>
+    <color name="successStateMainColor">#20EA0B</color>
+    <color name="textFieldBGColor">#464845</color>
+</resources>

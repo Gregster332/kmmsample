@@ -7,68 +7,69 @@
 
 import SwiftUI
 
-public enum AppTheme: String, CaseIterable {
-    case systemDefault = "Default"
-    case dark = "Dark"
-    case light = "Light"
-}
+
 
 public struct AppThemSwitcherView: View {
     
-    @Binding public var toggle: Bool
-    var colorScheme: ColorScheme
-    @AppStorage("app_theme") private var appTheme: AppTheme = .systemDefault
-    
-    public init(toggle: Binding<Bool>, colorScheme: ColorScheme) {
-        self._toggle = toggle
-        self.colorScheme = colorScheme
+    public enum AppTheme: String, CaseIterable {
+        case systemDefault = "Default"
+        case dark = "Dark"
+        case light = "Light"
     }
     
+    @Environment(\.colorScheme) var colorScheme: ColorScheme
+    @AppStorage("app_theme") private var appTheme: AppTheme = .systemDefault
+    @Namespace private var animation
+    
+    public init() {}
+    
     public var body: some View {
-        
-            VStack(alignment: .center, spacing: 8) {
-                Text("Choose the main app theme")
-                    .font(.system(size: 20, weight: .semibold))
-                    .padding()
-                
-                HStack {
-                    ForEach(AppTheme.allCases, id: \.self) { theme in
-                        Text(theme.rawValue)
-                            .font(.system(size: 16, weight: .medium))
-                            .padding(10)
-                            //.frame(width: geo.size.width * 0.2)
-                            .background(theme == appTheme ? selectedColor : Color.clear)
-                            .clipShape(Capsule())
-                            .onTapGesture {
+        VStack(alignment: .center, spacing: 8) {
+            Text("Choose the main app theme")
+                .font(.title2.bold())
+                .padding()
+            
+            HStack {
+                ForEach(AppTheme.allCases, id: \.self) { theme in
+                    Text(theme.rawValue)
+                        .font(.system(size: 18, weight: .semibold))
+                        .padding(10)
+                        .foregroundStyle(colorScheme == .dark ? .black : .white)
+                        .frame(width: 90)
+                        .background {
+                            ZStack {
+                                if appTheme == theme {
+                                    Capsule()
+                                        .fill(.primary)
+                                        .matchedGeometryEffect(id: "Active", in: animation)
+                                }
+                            }
+                            .animation(.snappy, value: appTheme)
+                        }
+                        .contentShape(.rect)
+                        .onTapGesture {
+                            withAnimation(.easeOut) {
                                 appTheme = theme
                             }
-                    }
+                        }
                 }
-                .padding(2)
-                .background {
-                    Capsule()
-                        .fill(.gray.opacity(0.3))
-                }
-                .padding(.bottom, 24)
-            //                        .gesture(DragGesture().onEnded {
-            //                            if $0.translation.height > 0 {
-            //                                withAnimation(.snappy) {
-            //                                    toggle = false
-            //                                }
-            //                            }
-            //                        })
+            }
+            .padding(2)
+            .background {
+                Capsule()
+                    .fill(.gray.opacity(0.3))
+                    
+            }
         }
         .ignoresSafeArea(.all)
-        //.preferredColorScheme(colorScheme)
-        .environment(\.colorScheme, colorScheme)
     }
     
     private var selectedColor: Color {
         switch colorScheme {
         case .light:
-            return .white
-        case .dark:
             return .black
+        case .dark:
+            return .white
         @unknown default:
             return .clear
         }
@@ -76,5 +77,6 @@ public struct AppThemSwitcherView: View {
 }
 
 #Preview {
-    AppThemSwitcherView(toggle: .constant(true), colorScheme: ColorScheme.light)
+    AppThemSwitcherView()
+        .environment(\.colorScheme, .dark)
 }

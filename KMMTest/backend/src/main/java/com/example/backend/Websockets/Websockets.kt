@@ -1,5 +1,6 @@
 package com.example.backend.Websockets
 
+import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
@@ -12,6 +13,7 @@ import io.ktor.websocket.DefaultWebSocketSession
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
+import kotlinx.serialization.json.Json
 import java.time.Duration
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicInteger
@@ -22,11 +24,13 @@ fun Application.configureWebSocket() {
         timeout = Duration.ofSeconds(120)
         maxFrameSize = Long.MAX_VALUE
         masking = false
+        contentConverter = KotlinxWebsocketSerializationConverter(Json)
     }
+
 
     routing {
         val connections = Collections.synchronizedSet<Connection?>(LinkedHashSet())
-        authenticate("jwt-main") {
+        //authenticate("jwt-main") {
             webSocket("/chat") {
                 connections += Connection(this)
                 println("size ${connections.size}")
@@ -43,7 +47,7 @@ fun Application.configureWebSocket() {
                 }
             }
         }
-    }
+    //}
 }
 
 class Connection(val session: DefaultWebSocketSession) {

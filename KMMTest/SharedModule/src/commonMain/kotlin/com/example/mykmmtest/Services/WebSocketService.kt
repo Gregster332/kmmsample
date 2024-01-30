@@ -1,5 +1,6 @@
 package com.example.mykmmtest.Services
 
+import com.example.corenetwork.api.Chats.WebSocketService
 import com.example.mykmmtest.Services.SocketServiceImpl.SocketServiceImpl
 import kotlinx.serialization.Serializable
 
@@ -10,26 +11,16 @@ data class WsMessage(
     val text: String
 )
 
-internal interface WebSocketService {
-    var onOpenBlock: (() -> Unit)?
-    var onFailureBlock: ((Throwable) -> Unit)?
-    var onCloseBlock: (() -> Unit)?
-    var messageListenerBlock: ((msg: String) -> Unit)?
-
-    fun connect()
-    fun disconnect()
-    fun send(msg: String)
-}
-
 internal class WebSocketServiceImpl: WebSocketService {
     override var onOpenBlock: (() -> Unit)? = null
     override var onFailureBlock: ((Throwable) -> Unit)? = null
     override var onCloseBlock: (() -> Unit)? = null
     override var messageListenerBlock: ((msg: String) -> Unit)? = null
 
-    private val socket = SocketServiceImpl("ws://0.0.0.0:8080/chat")
+    private lateinit var socket: SocketServiceImpl
 
-    override fun connect() {
+    override fun connect(url: String) {
+        socket = SocketServiceImpl(url)
         socket.open(socketListener)
     }
 

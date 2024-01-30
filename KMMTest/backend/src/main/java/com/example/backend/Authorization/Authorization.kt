@@ -1,124 +1,177 @@
 package com.example.backend.Authorization
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.interfaces.DecodedJWT
+import com.example.backend.Authorization.Models.TokensResponse
+import com.example.backend.Authorization.Tokens.RefreshTokenRepository
+import com.example.backend.DB.UserModel
+import com.example.backend.DB.UsersDao
+import com.example.backend.DB.toUserModel
 import com.example.backend.Models.LoginState
-import com.example.backend.Models.UserAUTH
-import io.ktor.http.HttpStatusCode
+import com.example.backend.UserBaseInfo
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.application.install
-import io.ktor.server.application.log
 import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
-import io.ktor.server.auth.principal
 import io.ktor.server.plugins.BadRequestException
-import io.ktor.server.request.receive
 import io.ktor.server.response.respond
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.routing
-import java.util.Date
+import io.ktor.util.logging.Logger
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.postgresql.util.PSQLException
+import java.util.UUID
 
-fun Application.configureAuth() {
+fun Application.configureAuth(
+    jwtService: JwtService
+) {
     install(Authentication) {
-        jwt("jwt-main") {
-            realm = "http://0.0.0.0:8080"
+        jwt("main") {
+            verifier(jwtService.verifier)
 
-            verifier(
-                JWT
-                    .require(Algorithm.HMAC256("secret"))
-                    .withIssuer("issuer")
-                    .build()
-            )
-
-            validate { credentials ->
-                if (
-                    credentials.payload.getClaim("nickname").asString() != "" &&
-                    credentials.payload.getClaim("phone_number").asString() != ""
-                ) {
-                    println("Succ ${credentials.payload.getClaim("nickname")}")
-                    JWTPrincipal(credentials.payload)
-                } else {
-                    println("fail")
-                    null
-                }
+            validate {
+                jwtService.validate(it)
             }
 
-            challenge { defScheme, realm ->
-                println("dshjhsjhsjhdjshd")
+            challenge { _, _ ->
+                call.request.headers["Authorization"]?.let {
+                    if (it.isNotEmpty()) {
+                       call.respond(LoginState(isAccessTokenExpired = true))
+                    } else {
+                        throw BadRequestException("Authorization header can not be blank!")
+                    }
+                } ?: throw BadRequestException("Authorization header can not be blank!")
             }
         }
     }
+}
 
-    routing {
-        post("/login") {
-            //call.application.log.info("🔴 Login attempt for call ${call.request}")
-            var userAuthData: UserAUTH? = null
+class UserAuthenticator(
+    private val logger: Logger,
+    private val jwtService: JwtService,
+    private val userRepo: UsersDao,
+    private val tokensRepo: RefreshTokenRepository
+) {
+    suspend fun saveNewUser(userInfo: UserBaseInfo): UserBaseInfo? {
+        logger.info(
+            "start finding user data with $userInfo"
+        )
 
-            try {
-                userAuthData = call.receive()
-            } catch (e: Exception) {
-                println("decode data login error $e")
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Ooops! Some user data in request was missed! Double-check your request and repeat"
-                )
-                return@post
-            }
+        //println("USERSSSSSSS: ${userRepo.allUsers()}")
+        var foundUser: UserModel?
+        try {
+            //foundUser = userRepo.userByNickname(userInfo.nickname)
+            foundUser = userRepo.getBy(UUID.fromString(userInfo.id))
+        } catch (e: PSQLException) {
+            println("Erroe: ${e.message}")
+           foundUser = null
+        }
 
-            if (userAuthData == null) {
-                println("decoded data null login")
-                call.respond(
-                    HttpStatusCode.BadRequest,
-                    "Ooops! User data from request is NULL! Double-check your request and repeat"
+        logger.info(
+            "Found user: $foundUser"
+        )
+
+        return if (foundUser == null) {
+
+            logger.info(
+                "saving new user: $userInfo"
+            )
+
+            //userRepo.addNewUser(userInfo)
+            userRepo.create(userInfo.toUserModel())
+            //userRepo.insert(.toUserModel())
+            println(userRepo.getAll())
+
+            logger.info(
+                "new user saved: $userInfo"
+            )
+
+            userInfo
+        } else {
+            null
+        }
+    }
+
+    suspend fun auth(userInfo: UserBaseInfo): TokensResponse? {
+
+        logger.info(
+            "Auth process started for user with nickname ${userInfo.nickname}"
+        )
+
+        val nickname = userInfo.nickname
+        //val foundUser: UserModel? = userRepo.userByNickname(nickname)
+        val foundUser: UserModel? = userRepo.getBy(UUID.fromString(userInfo.id))
+
+        logger.info(
+            "Found user with nickname ${userInfo.nickname} and password ${userInfo.password}"
+        )
+
+        return if (foundUser != null && foundUser.email == userInfo.email) {
+            val accessToken = jwtService.createAccessToken(userInfo)
+            val refreshToken = jwtService.createRefreshToken(userInfo)
+
+            logger.info(
+                "create aToken ${accessToken} and refToken $refreshToken"
+            )
+
+            tokensRepo.save(refreshToken, userInfo.id)
+
+            TokensResponse(
+                accessToken = accessToken,
+                refreshToken = refreshToken
+            )
+        } else {
+            logger.info(
+                "It seems to be that passwords mismatch here: userInfo password ${userInfo.email} and password for user form db ${foundUser?.email}"
+            )
+            null
+        }
+    }
+
+    suspend fun refresh(token: String): String? {
+
+        logger.info(
+            "Refresh process started with ${token}"
+        )
+
+        val decodedRefreshToken = verifyRefreshToken(token)
+        val persistedId = tokensRepo.findUsernameByToken(token)
+
+        logger.info(
+            "Refresh info: decodedRefreshToken = $decodedRefreshToken and $persistedId"
+        )
+
+        return if(decodedRefreshToken != null && persistedId != null) {
+            //val foundUser: UserModel? = userRepo.userById(persistedId)
+            val foundUser = userRepo.getBy(UUID.fromString(persistedId))
+            val nicknameFormRefreshToken: String? = decodedRefreshToken.getClaim("nickname").asString()
+
+            logger.info(
+                "Refresh info: foundUser = $foundUser and nicknameFormRefreshToken $nicknameFormRefreshToken"
+            )
+
+            if (foundUser != null && nicknameFormRefreshToken == foundUser.nickname) {
+                jwtService.createAccessToken(
+                    UserBaseInfo(id = foundUser.id.toString(), nickname = foundUser.nickname, email = foundUser.email)
                 )
             } else {
-                val token = JWT.create()
-                    .withIssuer("issuer")
-                    .withClaim("phone_number", userAuthData?.phoneNumber)
-                    .withClaim("nickname", userAuthData?.nickname)
-                    .withExpiresAt(Date(System.currentTimeMillis() + 100000))
-                    .sign(Algorithm.HMAC256("secret"))
-
-                call.respond(hashMapOf("token" to token))
+                null
             }
+        } else {
+            null
         }
+    }
 
-        authenticate("jwt-main") {
-            get("/isAuthorizedUser") {
-                var principal: JWTPrincipal? = null
-                try {
-                    println(call.principal<JWTPrincipal>())
-                    principal = call.principal()
-                } catch(e: Exception) {
-                    println("decode data error isAuth $e")
-                    call.respond(
-                        HttpStatusCode.BadRequest,
-                        "JWT token is empty for this session. Try to sign in with your credentials"
-                    )
-                    return@get
-                }
+    private fun verifyRefreshToken(token: String): DecodedJWT? {
+        val decodedJWT: DecodedJWT? = getDecodedJwt(token)
 
-                if (principal == null) {
-                    println("decoded data null isAuth")
-                    call.respond(
-                        HttpStatusCode.BadRequest,
-                        "JWT token is empty for this session. Try to sign in with your credentials"
-                    )
-                    return@get
-                } else {
-                    val nickname = principal?.payload?.getClaim("nickname")?.asString() ?: ""
-                    val phoneNumber = principal?.payload?.getClaim("phone_number")?.asString() ?: ""
-                    if (nickname.isNotEmpty() && phoneNumber.isNotEmpty()) {
-                        call.respond(hashMapOf("state" to LoginState(true)))
-                    } else {
-                        call.respond(hashMapOf("state" to LoginState(false)))
-                    }
-                }
-            }
+        return decodedJWT?.let {
+            val audienceMatches = jwtService.matchAudience(it.audience.first())
+
+            if (audienceMatches) decodedJWT else null
         }
+    }
+
+    private fun getDecodedJwt(token: String): DecodedJWT? = try {
+        jwtService.verifier.verify(token)
+    } catch (e: Exception) {
+        null
     }
 }

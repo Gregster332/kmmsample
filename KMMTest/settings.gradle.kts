@@ -17,3 +17,8 @@ rootProject.name = "MyKMMTest"
 include(":androidApp")
 include(":SharedModule")
 include(":backend")
+include(":chats")
+include(":core")
+include(":corenetwork")
+include(":apptheme")
+include(":searchlist")

@@ -1,7 +1,8 @@
 package com.example.mykmmtest.Services.SocketServiceImpl
 
+//import com.example.corenetwork.api.SecurePersistant.SettingsKeys
+import com.example.corenetwork.api.SecurePersistant.SettingsPersistent
 import com.example.mykmmtest.Services.PlatformListener
-import com.example.mykmmtest.Services.SecurePersistant.SecurePersistant
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -15,10 +16,10 @@ actual class SocketServiceImpl actual constructor(
     private val socketEndpoint = url
     private var webSocket: WebSocket? = null
 
-    private val settings by inject<SecurePersistant>()
+    private val settings by inject<SettingsPersistent>()
 
     actual fun open(listener: PlatformListener) {
-        val token = settings.getValue("auth_token") ?: ""
+        val token = settings.getString("AUTH_TOKEN")
 
         val socketRequest = Request.Builder()
             .url(socketEndpoint)

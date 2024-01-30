@@ -48,16 +48,13 @@ object Dependencies {
 
     object Settings {
         private const val version = "1.1.1"
-        const val settings = "com.russhwolf:multiplatform-settings:$version"
+        const val settings = "com.russhwolf:multiplatform-settings-no-arg:$version"
     }
 
     object Decompose {
-        private const val version = "2.1.4-compose-experimental"
+        private const val version = "2.1.4"
         const val decompose = "com.arkivanov.decompose:decompose:$version"
+        const val jetpack = "com.arkivanov.decompose:extensions-compose-jetpack:$version"
+        //const val jetpack = "com.arkivanov.decompose:extensions-compose-jetpack:$version"
     }
-
-//    object LiveData {
-//        private const val version = "0.16.1"
-//        const val liveData = "dev.icerock.moko:mvvm-livedata:$version"
-//    }
 }

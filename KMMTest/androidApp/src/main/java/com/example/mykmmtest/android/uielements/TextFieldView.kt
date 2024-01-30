@@ -25,6 +25,8 @@ fun TextFieldView(
     text: String,
     isError: Boolean,
     isValid: Boolean,
+    title: String,
+    hint: String? = null,
     onValueChange: (String) -> Unit
 ) {
 
@@ -56,7 +58,7 @@ fun TextFieldView(
             .fillMaxWidth()
     ) {
         Text(
-            text = "Hello",
+            text = title,
             color = Color.Black,
             fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold,
@@ -82,18 +84,16 @@ fun TextFieldView(
                 .fillMaxWidth()
         )
 
-//        BasicTextField(value = ) {
-//
-//        }
-
-        Text(
-            text = "Hint",
-            color = Color.Gray,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-        )
+        if (hint is String) {
+            Text(
+                text = hint,
+                color = Color.Gray,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+            )
+        }
     }
 }
 
@@ -104,6 +104,7 @@ fun TextFieldViewPreview() {
         text = "Hello",
         isError = false,
         isValid = true,
+        title = "",
         onValueChange = {}
     )
 }

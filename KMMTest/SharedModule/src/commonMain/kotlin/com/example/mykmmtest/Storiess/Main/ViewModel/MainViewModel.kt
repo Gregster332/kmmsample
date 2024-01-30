@@ -7,7 +7,7 @@ import com.example.mykmmtest.Services.WsMessage
 import com.example.mykmmtest.Storiess.Main.MainStore
 import com.example.mykmmtest.Storiess.Main.Presentation.UIMainState
 import com.example.mykmmtest.Utils.Mapper
-import dev.icerock.moko.mvvm.viewmodel.ViewModel
+//import dev.icerock.moko.mvvm.viewmodel.ViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,56 +18,56 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.core.component.KoinComponent
 
-class MainViewModel(
-    private val store: MainStore,
-    private val stateMapper: Mapper<MainStore.State, UIMainState>
-): ViewModel() {
-
-    val state: StateFlow<UIMainState>
-        get () = mutableState
-
-    private val initialState = UIMainState()
-    private val mutableState = MutableStateFlow(initialState)
-    private val binder: Binder
-
-    init {
-        binder = bind(Dispatchers.Main.immediate) {
-            store.states.map { value -> stateMapper.map(value) } bindTo (::acceptState)
-        }
-        binder.start()
-        store.accept(MainStore.Intent.LoadChats)
-
-        viewModelScope.launch {
-            mutableState
-                .map { it.isLoading }
-                .collect {
-                    println(it)
-                }
-        }
-    }
-
-    fun createNewChat(name: String) {
-        store.accept(MainStore.Intent.OnCreateNewChat(name))
-    }
-
-    fun tapSendMessage(message: String) {
-        val serialized = serializeMessage(message)
-        //println(serialized)
-        store.accept(MainStore.Intent.OnTapSendMessage(serialized))
-    }
-
-    private fun acceptState(state: UIMainState) {
-        mutableState.value = state
-    }
-
-    private fun serializeMessage(message: String): String {
-        var wsmessage = WsMessage("0", "Greg", message)
-        return Json.encodeToString(wsmessage)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        binder.stop()
-        store.dispose()
-    }
-}
+//class MainViewModel(
+//    private val store: MainStore,
+//    private val stateMapper: Mapper<MainStore.State, UIMainState>
+//): ViewModel() {
+//
+//    val state: StateFlow<UIMainState>
+//        get () = mutableState
+//
+//    private val initialState = UIMainState()
+//    private val mutableState = MutableStateFlow(initialState)
+//    private val binder: Binder
+//
+//    init {
+//        binder = bind(Dispatchers.Main.immediate) {
+//            store.states.map { value -> stateMapper.map(value) } bindTo (::acceptState)
+//        }
+//        binder.start()
+//        store.accept(MainStore.Intent.LoadChats)
+//
+//        viewModelScope.launch {
+//            mutableState
+//                .map { it.isLoading }
+//                .collect {
+//                    println(it)
+//                }
+//        }
+//    }
+//
+//    fun createNewChat(name: String) {
+//        store.accept(MainStore.Intent.OnCreateNewChat(name))
+//    }
+//
+//    fun tapSendMessage(message: String) {
+//        val serialized = serializeMessage(message)
+//        //println(serialized)
+//        store.accept(MainStore.Intent.OnTapSendMessage(serialized))
+//    }
+//
+//    private fun acceptState(state: UIMainState) {
+//        mutableState.value = state
+//    }
+//
+//    private fun serializeMessage(message: String): String {
+//        var wsmessage = WsMessage("0", "Greg", message)
+//        return Json.encodeToString(wsmessage)
+//    }
+//
+//    override fun onCleared() {
+//        super.onCleared()
+//        binder.stop()
+//        store.dispose()
+//    }
+//}

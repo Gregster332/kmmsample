@@ -11,6 +11,27 @@ import SwiftUI
 import SharedModule
 import UIElements
 
+struct ViewBackgroud: ViewModifier {
+    
+    let color: UIColor
+    
+    func body(content: Content) -> some View {
+        ZStack {
+            Color(uiColor: color)
+                .ignoresSafeArea()
+            
+            content
+        }
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func viewBackground(color: UIColor) -> some View {
+        modifier(ViewBackgroud(color: color))
+    }
+}
+
 struct AuthView: View {
     
     enum AuthTextFieldState {
@@ -20,195 +41,157 @@ struct AuthView: View {
     }
     
     @FocusState private var focus: AuthTextFieldState?
-    @StateObject private var wrapper = AuthViewModelWrapper()
-    @Environment(\.colorScheme) var colorScheme
-    @State private var toggleAppThemeView: Bool = false
+    
+    private let component: AuthComponent
+    
+    @ObservedObject
+    private var models: ObservableValue<AuthStoreUIAuthState>
+    
+    init(component: AuthComponent) {
+        self.component = component
+        self.models = ObservableValue(component.state)
+    }
     
     var body: some View {
-        ZStack {
-            AnimateGradientView()
+        //AnimateGradientView()
+        VStack(spacing: 26) {
+            Spacer()
             
-            VStack(spacing: 26) {
-                Spacer()
-                
-                //if focus == nil {
-                    Text("Authorization")
-                        .font(
-                            .system(
-                                size: focus == nil ? 36 : 16,
-                                weight: .semibold,
-                                design: .rounded
-                            )
-                        )
-                        .foregroundStyle(Color.blue)
-                //}
-                
-                if let error = wrapper.error {
-                    Text(error)
-                        .foregroundStyle(.red)
-                }
-                
-                StateableTextFiledView(
-                    text: $wrapper.nicknameState.text,
-                    isError: $wrapper.nicknameState.isError,
-                    isValid: $wrapper.nicknameState.isValid,
-                    header: "Nickname",
-                    onTypingListener: wrapper.onNicknameChanged
-                )
-                .focused($focus, equals: .nickname)
-                
-                StateableTextFiledView(
-                    text: $wrapper.phoneNumberState.text,
-                    isError: $wrapper.phoneNumberState.isError,
-                    isValid: $wrapper.phoneNumberState.isValid,
-                    header: "Email",
-                    onTypingListener: wrapper.onPhoneNumber
-                )
-                .focused($focus, equals: .phoneNumber)
-                
-                StateableTextFiledView(
-                    text: $wrapper.passwordField.text,
-                    isError: $wrapper.passwordField.isError,
-                    isValid: $wrapper.passwordField.isValid,
-                    header: "Password",
-                    onTypingListener: wrapper.onPasswordChanged
-                )
-                .focused($focus, equals: .password)
-                
-                    Button {
-                        wrapper.trySignUp()
-                    } label: {
-                        HStack {
-                            Text("Start")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundStyle(.white)
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: 56)
-                        .background(wrapper.isValid ? Color.blue : Color.gray)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                    }
-                    .disabled(!wrapper.isValid)
-                    
-                    Spacer()
+            if let error = models.value.errorMessage {
+                Text(error)
+                    .foregroundStyle(.red)
             }
-            .padding(.horizontal, 46)
-            .onSubmit {
-                switch focus {
-                case .nickname:
-                    focus = .phoneNumber
-                case .phoneNumber:
-                    focus = .password
-                default:
-                    focus = nil
+            
+            StateableTextFiledView(
+                text: .init(
+                    get: { models.value.nickname.text },
+                    set: { component.validateNickname(text: $0) }
+                ),
+                isError: .init(
+                    get: { models.value.nickname.isError },
+                    set: { models.value.nickname.isError = $0 }
+                ),
+                isValid: .init(
+                    get: { models.value.nickname.isValid },
+                    set: { models.value.nickname.isValid = $0 }
+                ),
+                colors: StateableTextFiledView.Colors(
+                    appThemeBackgroundColor: MR.colors().textFieldBGColor.getUIColor(),
+                    errorBackgroudColor: MR.colors().errorStateMainColor.getUIColor(),
+                    successBackgroudColor: MR.colors().successStateMainColor.getUIColor()
+                ),
+                header: MR.strings().nickname_field_title.desc().localized()
+            )
+            .focused($focus, equals: .nickname)
+            
+            StateableTextFiledView(
+                text: .init(
+                    get: { models.value.phoneNumberState.text },
+                    set: { component.validatePhone(text: $0) }
+                ),
+                isError: .init(
+                    get: { models.value.phoneNumberState.isError },
+                    set: { models.value.phoneNumberState.isError = $0 }
+                ),
+                isValid: .init(
+                    get: { models.value.phoneNumberState.isValid },
+                    set: { models.value.phoneNumberState.isValid = $0 }
+                ),
+                colors: StateableTextFiledView.Colors(
+                    appThemeBackgroundColor: MR.colors().textFieldBGColor.getUIColor(),
+                    errorBackgroudColor: MR.colors().errorStateMainColor.getUIColor(),
+                    successBackgroudColor: MR.colors().successStateMainColor.getUIColor()
+                ),
+                header: MR.strings().phone_field_title.desc().localized()
+            )
+            .focused($focus, equals: .phoneNumber)
+            
+            StateableTextFiledView(
+                text: .init(
+                    get: { models.value.passwordState.text },
+                    set: { component.validatePassword(text: $0) }
+                ),
+                isError: .init(
+                    get: { models.value.passwordState.isError },
+                    set: { models.value.passwordState.isError = $0 }
+                ),
+                isValid: .init(
+                    get: { models.value.passwordState.isValid },
+                    set: { models.value.passwordState.isValid = $0 }
+                ),
+                colors: StateableTextFiledView.Colors(
+                    appThemeBackgroundColor: MR.colors().textFieldBGColor.getUIColor(),
+                    errorBackgroudColor: MR.colors().errorStateMainColor.getUIColor(),
+                    successBackgroudColor: MR.colors().successStateMainColor.getUIColor()
+                ),
+                header: MR.strings().password_field_title.desc().localized()
+            )
+            .focused($focus, equals: .password)
+            
+            Spacer()
+            
+            Button {
+                component.authWithPassword()
+            } label: {
+                HStack {
+                    Text("Start")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(.white)
                 }
+                .frame(maxWidth: .infinity, maxHeight: 56)
+                .background(
+                    models.value.nickname.isValid &&
+                    models.value.phoneNumberState.isValid &&
+                    models.value.passwordState.isValid
+                    ? Color.blue : Color.gray
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+            .padding(.bottom, 8)
+            .disabled(
+                !models.value.nickname.isValid &&
+                !models.value.phoneNumberState.isValid &&
+                !models.value.passwordState.isValid
+            )
+            .ignoresSafeArea(.keyboard, edges: .bottom)
+            
+        }
+        .padding(.horizontal, 16)
+        .viewBackground(
+            color: MR.colors.shared.backgroundColor.getUIColor()
+        )
+        .onSubmit {
+            switch focus {
+            case .nickname:
+                focus = .phoneNumber
+            case .phoneNumber:
+                focus = .password
+            default:
+                focus = nil
             }
         }
-        .ignoresSafeArea(.keyboard, edges: .bottom)
-        .sheet(isPresented: $toggleAppThemeView, content: {
-            AppThemSwitcherView(
-                toggle: $toggleAppThemeView,
-                colorScheme: colorScheme
-            )
-            .presentationDetents([.fraction(0.2)])
-        })
         .onAppear {
-            //wrapper.trySingInWithToken()
             focus = .nickname
         }
         .onDisappear {
             focus = nil
-            wrapper.onDisapper()
         }
-        .preferredColorScheme(colorScheme)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                VStack {
-                    Text("Hello")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(.primary)
-                    Text("Subtitle")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(.secondary)
-                }
+                Text(MR.strings().auth_screen_title.desc().localized())
+                    .font(.title3.weight(.semibold))
             }
             
-            ToolbarItem(placement: .topBarLeading) {
+            ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    toggleAppThemeView.toggle()
+                    component.openAppTheme()
                 } label: {
-                    Text("dsds")
+                    Image(systemName: "lightbulb.fill")
+                        .resizable()
+                        .tint(.primary)
                 }
             }
         }
         .navigationBarBackButtonHidden()
     }
-}
-
-private extension AuthView {
-    final class AuthViewModelWrapper: ObservableObject {
-        
-        private let viewModel: AuthViewModel
-        private var cancellables = Set<AnyCancellable>()
-        
-        @Published var nicknameState: AuthStoreField = .empty
-        @Published var phoneNumberState: AuthStoreField = .empty
-        @Published var passwordField: AuthStoreField = .empty
-        @Published var isValid = false
-        @Published var error: String? = nil
-        
-        init(
-            viewModel: AuthViewModel = IosMainDI().authViewModel()
-        ) {
-            self.viewModel = viewModel
-            bindUI()
-        }
-        
-        func onNicknameChanged(text: String) {
-            viewModel.acceptNickname(text: text)
-        }
-        
-        func onPhoneNumber(text: String) {
-            viewModel.acceptPhoneNumber(text: text)
-        }
-        
-        func onPasswordChanged(text: String) {
-            viewModel.acceptPassword(text: text)
-        }
-        
-        func trySignUp() {
-            viewModel.trySignUp()
-        }
-        
-        func onDisapper() {
-            cancellables.forEach { $0.cancel() }
-            cancellables = []
-        }
-        
-        private func bindUI() {
-            FlowPublisher<AuthStoreUIAuthState>(flow: viewModel.state)
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] state in
-                    withAnimation(.easeInOut) {
-                        self?.nicknameState = state.nickname
-                        self?.phoneNumberState = state.phoneNumberState
-                        self?.passwordField = state.passwordState
-                        self?.isValid = state.isButtonEnabled
-                        self?.error = state.errorMessage
-                    }
-                      
-                    if state.isSuccess {
-                        Coordinator.shared.showMain()
-                    }
-                }
-                .store(in: &cancellables)
-        }
-    }
-}
-
-#Preview {
-    AuthView()
-}
-
-extension AuthStoreField {
-    static let empty = AuthStoreField(text: "", isError: false, isValid: false)
 }

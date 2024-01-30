@@ -1,14 +1,12 @@
 package com.example.mykmmtest.Storiess.Splash
 
-import com.arkivanov.mvikotlin.core.store.Executor
 import com.arkivanov.mvikotlin.core.store.Reducer
+import com.arkivanov.mvikotlin.core.store.SimpleBootstrapper
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.arkivanov.mvikotlin.core.store.create
-import com.example.mykmmtest.Services.AuthService.AuthService
-import com.example.mykmmtest.Storiess.Main.BaseExecutor
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import com.example.core.MVI.BaseExecutor
+import com.example.corenetwork.api.Auth.AuthApi
+import kotlinx.coroutines.CancellationException
 
 interface SplashStore: Store<SplashStore.Intent, SplashStore.UISplashState, Nothing> {
     data class UISplashState(
@@ -19,23 +17,29 @@ interface SplashStore: Store<SplashStore.Intent, SplashStore.UISplashState, Noth
     sealed interface AuthorizeState {
         data object NotSet: AuthorizeState
         data object Autheticated: AuthorizeState
+        data object NeedRefreshToken: AuthorizeState
         data object Reauth: AuthorizeState
     }
 
     sealed interface Intent {
-        data object StartFlow: Intent
+        data object RefreshToken: Intent
+    }
+
+    sealed interface Action {
+        data object TryAuthWithToken: Action
     }
 }
 
 class SplashStoreFactory(
     private val storeFactory: StoreFactory,
-    private val authService: AuthService
+    private val authService: AuthApi,
+    private val onAuthUser: () -> Unit
 ) {
-
     sealed interface SplashMessage {
         data object Loading: SplashMessage
         data object AuthAlready: SplashMessage
         data object NeedsReauth: SplashMessage
+        data object NeedsRefreshToken: SplashMessage
     }
 
     fun create(): SplashStore = object :
@@ -43,34 +47,55 @@ class SplashStoreFactory(
         Store<SplashStore.Intent, SplashStore.UISplashState, Nothing> by storeFactory.create(
             name = SplashStore::class.simpleName,
             initialState = SplashStore.UISplashState(),
+            bootstrapper = SimpleBootstrapper(SplashStore.Action.TryAuthWithToken),
             executorFactory = {
-                SplashExecutor(authService)
+                SplashExecutor(authService, onAuthUser)
             },
             reducer = SplashReducer()
         ) {}
 }
 
 internal class SplashExecutor(
-    private val authService: AuthService
-): BaseExecutor<SplashStore.Intent, Nothing, SplashStore.UISplashState, SplashStoreFactory.SplashMessage, Nothing>() {
+    private val authService: AuthApi,
+    private val onAuthUser: () -> Unit
+): BaseExecutor<SplashStore.Intent, SplashStore.Action, SplashStore.UISplashState, SplashStoreFactory.SplashMessage, Nothing>() {
     override suspend fun suspendExecuteIntent(
         intent: SplashStore.Intent,
         getState: () -> SplashStore.UISplashState
     ) = when(intent) {
-        is SplashStore.Intent.StartFlow -> checkAuthStatus()
+        is SplashStore.Intent.RefreshToken -> refreshIdToken()
+    }
+
+    override suspend fun suspendExecuteAction(
+        action: SplashStore.Action,
+        getState: () -> SplashStore.UISplashState
+    ) = when (action) {
+        is SplashStore.Action.TryAuthWithToken -> checkAuthStatus()
     }
 
     private suspend fun checkAuthStatus() {
         dispatch(SplashStoreFactory.SplashMessage.Loading)
         try {
-            delay(4000L)
             val status = authService.trySignInWithToken()
-            if (status.state.isAuthorized)
+            println("EXECUTE status: ${status.isAuthorized}")
+            if (status.isAuthorized) {
                 dispatch(SplashStoreFactory.SplashMessage.AuthAlready)
-            else
+            } else if (status.isAccessTokenExpired) {
+                dispatch(SplashStoreFactory.SplashMessage.NeedsRefreshToken)
+            } else {
                 dispatch(SplashStoreFactory.SplashMessage.NeedsReauth)
+            }
         } catch(e: Exception) {
             println(e)
+            dispatch(SplashStoreFactory.SplashMessage.NeedsReauth)
+        }
+    }
+
+    private suspend fun refreshIdToken() {
+        try {
+            authService.refreshIdToken()
+            dispatch(SplashStoreFactory.SplashMessage.AuthAlready)
+        } catch (e: Exception) {
             dispatch(SplashStoreFactory.SplashMessage.NeedsReauth)
         }
     }
@@ -90,6 +115,10 @@ internal class SplashReducer: Reducer<SplashStore.UISplashState, SplashStoreFact
         is SplashStoreFactory.SplashMessage.NeedsReauth -> copy(
             isLoading = false,
             authState = SplashStore.AuthorizeState.Reauth
+        )
+        is SplashStoreFactory.SplashMessage.NeedsRefreshToken -> copy(
+            isLoading = false,
+            authState = SplashStore.AuthorizeState.NeedRefreshToken
         )
     }
 }

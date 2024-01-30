@@ -18,6 +18,7 @@ struct ChatCell: View {
             HStack(alignment: .top) {
                 HStack(spacing: 12) {
                     Circle()
+                        .frame(height: 66)
                         .padding(4)
                     
                     VStack(alignment: .leading, spacing: 2) {
@@ -44,10 +45,10 @@ struct ChatCell: View {
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 8)
         }
-        .frame(height: 66)
+        
     }
 }
 
 #Preview {
-    ChatCell(name: "")
+    ChatCell(name: "dsdsds")
 }

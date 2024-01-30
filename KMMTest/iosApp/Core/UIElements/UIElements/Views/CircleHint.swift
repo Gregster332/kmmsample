@@ -7,31 +7,47 @@
 
 import SwiftUI
 
+public enum CircleHintStyle {
+    case success
+    case failure
+}
+
 public struct CircleHint: View {
     
-    let image: Image
+    let style: CircleHintStyle
     let color: Color
-    let backgroundColor: Color
     
     public init(
-        _ systemImageName: String,
-        _ color: Color,
-        _ backgroundColor: Color
+        _ style: CircleHintStyle,
+        _ color: Color
     ) {
-        self.image = Image(systemName: systemImageName)
+        self.style = style
         self.color = color
-        self.backgroundColor = backgroundColor
     }
     
     public var body: some View {
-        image
-            .font(.system(size: 18, weight: .semibold))
-            .foregroundStyle(color)
-            .transition(.opacity)
-            .padding(10)
-            .background {
-                Circle()
-                    .fill(backgroundColor)
-            }
+        ZStack {
+            Circle()
+                .fill(color)
+            
+            style.image
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.primary)
+        }
     }
+}
+
+extension CircleHintStyle {
+    var image: Image {
+        switch self {
+        case .success:
+            return Image(systemName: "checkmark")
+        case .failure:
+            return Image(systemName: "xmark")
+        }
+    }
+}
+
+#Preview {
+    CircleHint(.failure, .accentColor)
 }

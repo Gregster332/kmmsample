@@ -12,7 +12,6 @@ public struct AnimateGradientView: View, Equatable {
         lhs.points == rhs.points
     }
     
-    
     @Environment(\.colorScheme) var colorScheme
     @State private var proxy: GeometryProxy?
     @State private var points: [CGPoint] = []
