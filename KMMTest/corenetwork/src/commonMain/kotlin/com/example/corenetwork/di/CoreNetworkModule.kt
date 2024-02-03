@@ -19,9 +19,9 @@ val coreNetworkModule = module {
         SettingsPersistentImpl()
     }
 
-    single<SyncService> {
-        SyncService()
-    }
+//    single<SyncService> {
+//        SyncService
+//    }
 
     single<ChatsApi> {
         ChatsApiImpl(get())
@@ -32,6 +32,6 @@ val coreNetworkModule = module {
     }
 
     single<UsersApi> {
-        UsersApiImpl(get(), get(), get())
+        UsersApiImpl(get(), get())
     }
 }

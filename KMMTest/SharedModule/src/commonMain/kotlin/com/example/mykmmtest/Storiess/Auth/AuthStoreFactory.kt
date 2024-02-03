@@ -115,10 +115,9 @@ class AuthStoreFactory(
         private suspend fun tokenAuth() {
             try {
                 val state = authService.trySignInWithToken()
-                if (state.isAuthorized) dispatch(AuthMessage.Success) else dispatch(AuthMessage.OnError("Empty"))
+                if (state.loginState.isAuthorized) dispatch(AuthMessage.Success) else dispatch(AuthMessage.OnError("Empty"))
             } catch(e: Exception) {
                 dispatch(AuthMessage.OnError(e.message ?: ""))
-                //dispatch(AuthMessage.ResetError)
             }
         }
 

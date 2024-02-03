@@ -6,7 +6,7 @@ import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.example.core.MVI.BaseExecutor
 import com.example.corenetwork.api.Auth.AuthApi
-import kotlinx.coroutines.CancellationException
+import com.example.corenetwork.api.Auth.LocalCache
 
 interface SplashStore: Store<SplashStore.Intent, SplashStore.UISplashState, Nothing> {
     data class UISplashState(
@@ -33,6 +33,7 @@ interface SplashStore: Store<SplashStore.Intent, SplashStore.UISplashState, Noth
 class SplashStoreFactory(
     private val storeFactory: StoreFactory,
     private val authService: AuthApi,
+    private val localCache: LocalCache,
     private val onAuthUser: () -> Unit
 ) {
     sealed interface SplashMessage {
@@ -49,7 +50,7 @@ class SplashStoreFactory(
             initialState = SplashStore.UISplashState(),
             bootstrapper = SimpleBootstrapper(SplashStore.Action.TryAuthWithToken),
             executorFactory = {
-                SplashExecutor(authService, onAuthUser)
+                SplashExecutor(authService, localCache, onAuthUser)
             },
             reducer = SplashReducer()
         ) {}
@@ -57,6 +58,7 @@ class SplashStoreFactory(
 
 internal class SplashExecutor(
     private val authService: AuthApi,
+    private val localCache: LocalCache,
     private val onAuthUser: () -> Unit
 ): BaseExecutor<SplashStore.Intent, SplashStore.Action, SplashStore.UISplashState, SplashStoreFactory.SplashMessage, Nothing>() {
     override suspend fun suspendExecuteIntent(
@@ -75,19 +77,26 @@ internal class SplashExecutor(
 
     private suspend fun checkAuthStatus() {
         dispatch(SplashStoreFactory.SplashMessage.Loading)
+
+        //localCache.deleteAllUsers()
+        println("Hello db")
+        println(localCache.getAllUsers())
+        println("bye db")
+
         try {
             val status = authService.trySignInWithToken()
-            println("EXECUTE status: ${status.isAuthorized}")
-            if (status.isAuthorized) {
+
+            if (status.loginState.isAuthorized) {
                 dispatch(SplashStoreFactory.SplashMessage.AuthAlready)
-            } else if (status.isAccessTokenExpired) {
+            } else if (status.loginState.isAccessTokenExpired) {
                 dispatch(SplashStoreFactory.SplashMessage.NeedsRefreshToken)
             } else {
                 dispatch(SplashStoreFactory.SplashMessage.NeedsReauth)
             }
         } catch(e: Exception) {
             println(e)
-            dispatch(SplashStoreFactory.SplashMessage.NeedsReauth)
+            //dispatch(SplashStoreFactory.SplashMessage.NeedsReauth)
+            dispatch(SplashStoreFactory.SplashMessage.AuthAlready)
         }
     }
 

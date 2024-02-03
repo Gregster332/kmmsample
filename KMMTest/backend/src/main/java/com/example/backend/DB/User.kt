@@ -1,12 +1,17 @@
 package com.example.backend.DB
 
 import com.example.backend.NewChatRequestModel
+import com.example.backend.UUIDSerializer
 import com.example.backend.UserBaseInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.dao.UUIDEntity
+import org.jetbrains.exposed.dao.UUIDEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op
@@ -24,17 +29,26 @@ import java.util.UUID
 
 @Serializable
 data class UserModel(
-    @Contextual val id: UUID = UUID.randomUUID(),
+    @Serializable(UUIDSerializer::class)
+    val id: UUID = UUID.randomUUID(),
     val nickname: String,
     val email: String,
     val password: String,
     val photoUrl: String? = null,
     val bio: String? = null,
-    //val chats: List<NewChatRequestModel> = emptyList()
 )
 
 fun UserBaseInfo.toUserModel() = UserModel(
     id = UUID.fromString(id),
+    nickname = nickname,
+    email = email,
+    password = password,
+    photoUrl = photoUrl,
+    bio = bio
+)
+
+fun UserModel.toWebModel() = UserBaseInfo(
+    id = id.toString(),
     nickname = nickname,
     email = email,
     password = password,
@@ -49,82 +63,68 @@ interface DAOTable<M, I: Comparable<I>> {
     suspend fun getBy(equals: (Table) -> Op<Boolean>): List<M>
 }
 
-//object User : Table("users") {
-//    val id = text("id").uniqueIndex()
-//    val nickname = varchar("nickname", 20)
-//    val email = varchar("email", 30)
-//    val password = varchar("password", 30)
-//    val photoUrl = varchar("photo_url", 40).nullable()
-//    val bio = text("bio").nullable()
-//    val chats = reference("chats", Chats()).nullable()
-//
-//    fun toUserModel(row: ResultRow) = UserModel(
-//        id = row[User.id],
-//        nickname = row[User.nickname],
-//        email = row[User.email],
-//        password = row[User.password],
-//        photoUrl = row[User.photoUrl],
-//        bio = row[User.bio]
-//    )
-//}
+object Ussers : UUIDTable("users_main") {
+    val nickname = varchar("nickname", 20)
+    val email = varchar("email", 30)
+    val passcode = varchar("passcode", 30)
+    val photoUrl = varchar("photo_url", 40).nullable()
+    val bio = text("bio").nullable()
+}
 
-//class UserDaoImpl: DAOTable<UserModel> {
-//    override fun create(entity: UserModel) {
-//        try {
-//            User.insert {
-//                it[id] = entity.id
-//                it[nickname] = entity.nickname
-//                it[email] = entity.email
-//                it[password] = entity.password
-//                it[photoUrl] = entity.photoUrl
-//                it[bio] = entity.bio
-//            }
-//        } catch (e: Exception) {
-//            println("DB ERROR User insert: $e")
-//        }
-//    }
-//
-//    override fun getAll(): List<UserModel> = User.selectAll().map(User::toUserModel)
-//    override fun getBy(equals: (Table) -> Op<Boolean>) = User.select { equals(User) }.map(User::toUserModel).firstOrNull()
-//
-////    override fun insertAndGetId(entity: UserModel): Any? {
-////        User.inser
-////    }
-//}
+class UsserEntity(id: EntityID<UUID>): UUIDEntity(id) {
+    companion object : UUIDEntityClass<UsserEntity>(Ussers)
+    var nickname by Ussers.nickname
+    var email by Ussers.email
+    var passcode by Ussers.passcode
+    var photoUrl by Ussers.photoUrl
+    var bio by Ussers.bio
 
-object DatabaseSingleton {
-    fun init() {
-        val driverClassName = "org.postgresql.Driver"
-        val jdbcURL = "jdbc:postgresql://localhost:5432/"
-        Database.connect(jdbcURL, driverClassName, user = "postgres", password = "postgres")
+    fun mapUsers() = UserModel(
+        id.value,
+        nickname,
+        email,
+        passcode,
+        photoUrl,
+        bio
+    )
+}
 
-        transaction {
-            SchemaUtils.createMissingTablesAndColumns(Ussers, Chats, Messages, ChatsAndMessages)
+class UsersDao {
+    suspend fun createUser(entity: UserModel) = DatabaseSingleton.dbQuery {
+        UsserEntity.new {
+            nickname = entity.nickname
+            email = entity.email
+            passcode = entity.password
+            photoUrl = entity.photoUrl
+            bio = entity.bio
         }
     }
 
-    suspend fun <T> dbQuery(block: suspend () -> T): T =
-        newSuspendedTransaction(Dispatchers.IO) { block() }
+    suspend fun getAllUsers() = DatabaseSingleton.dbQuery {
+        UsserEntity.all()
+    }
+
+    suspend fun getUserBy(id: UUID) = DatabaseSingleton.dbQuery {
+        UsserEntity.findById(id)
+    }
+
+    suspend fun getUserBy(nickname: String) = DatabaseSingleton.dbQuery {
+        UsserEntity.find { Ussers.nickname eq nickname }
+    }
+
+    suspend fun updateUser(entity: UserModel) = DatabaseSingleton.dbQuery {
+        UsserEntity.findById(entity.id)?.let {
+            it.nickname = entity.nickname
+            it.email = entity.email
+            it.passcode = entity.password
+            it.photoUrl = entity.photoUrl
+            it.bio = entity.bio
+        }
+    }
+
+    suspend fun deleteUser(id: UUID) = DatabaseSingleton.dbQuery {
+        UsserEntity.findById(id)?.let {
+            it.delete()
+        }
+    }
 }
-
-//interface DAOFacade<M> {
-//    suspend fun all(): List<M>
-//    suspend fun getById(): M?
-//    suspend fun insert(entity: M)
-//}
-
-//abstract class BaseDatabaseRepository<T>(
-//    private val dao: DAOTable<T>
-//) {
-//    suspend fun create(entity: T) = withContext(Dispatchers.IO) {
-//        dao.create(entity)
-//    }
-//
-//    suspend fun getAll(): List<T> = withContext(Dispatchers.IO) {
-//        dao.getAll()
-//    }
-//
-//    suspend fun getBy(equals: (Table) -> Op<Boolean>): T? = withContext(Dispatchers.IO) {
-//        dao.getBy { equals(it) }
-//    }
-//}

@@ -3,6 +3,7 @@ package com.example.backend
 import com.example.backend.Authorization.JwtService
 import com.example.backend.Authorization.Tokens.RefreshTokenRepository
 import com.example.backend.Authorization.UserAuthenticator
+import com.example.backend.Authorization.UserLogInInfo
 import com.example.backend.Authorization.configureAuth
 import com.example.backend.DB.ChatEntity
 import com.example.backend.DB.Chats
@@ -15,12 +16,15 @@ import com.example.backend.DB.UserModel
 import com.example.backend.DB.UsersDao
 import com.example.backend.DB.UsserEntity
 import com.example.backend.DB.Ussers
+import com.example.backend.DB.toWebModel
 import com.example.backend.Models.LoginState
 import com.example.backend.Websockets.configureWebSocket
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.*
 import io.ktor.server.auth.authenticate
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -42,6 +46,8 @@ import kotlinx.serialization.encoding.Encoder
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.vendors.ForUpdateOption
 import java.util.Random
 import java.util.UUID
@@ -87,11 +93,11 @@ fun Application.configureRouting(
         post("/signUp") {
             val userInfo = call.receive<UserBaseInfo>()
 
-            userService.saveNewUser(
+            val user = userService.saveNewUser(
                 userInfo
             ) ?: return@post call.respond(HttpStatusCode.BadRequest)
 
-            val tokenResponse = userService.auth(userInfo)
+            val tokenResponse = userService.auth(user)
 
             tokenResponse?.let {
                 call.respond(tokenResponse)
@@ -111,73 +117,110 @@ fun Application.configureRouting(
             )
         }
 
-        get("/testNewUser") {
-            val userModel = UserModel(nickname = "Greg", email = "dsds", password = "dsd")
-            println(userModel)
-            val newUser = userRepo.create(userModel)?.let {
-                println(it)
-                call.respond(HttpStatusCode.OK, it)
-            }
-        }
-
-        post("/testNewChat") {
-            println("calll ${call.parameters}")
-            val uuid = UUID.fromString(call.parameters["id"])
-            userRepo.getBy(uuid)?.let {
-                val chat = NewChatRequestModel("test1", it.id)
-                chatsDao.create(chat)?.let {
-                    println(it)
-                    call.respond(HttpStatusCode.OK, it)
-                }
-            }
-        }
-
-        get("/addM") {
-            DatabaseSingleton.dbQuery {
-                ChatEntity.findById(UUID.fromString("5540150b-d7b1-4027-8a90-88218c70a7e2"))?.let {
-                    val newMessage = MessageEntity.new {
-                        message_text = "New test${Random().nextInt()} message"
-                    }
-
-                    val user = UsserEntity.findById(UUID.fromString("334728d2-56ba-4740-9bfa-087593d6aa9c"))
-                    when(user) {
-                        is UsserEntity -> {
-                            var partForUpdate = it.participants.toMutableList()
-                            partForUpdate.add(user)
-                            val currentMessages = it.messages.toMutableList()
-                            currentMessages.add(newMessage)
-                            it.messages = SizedCollection(currentMessages)
-                            println(partForUpdate)
-                            it.participants = SizedCollection(partForUpdate)
-                        }
-                        else -> call.respond(HttpStatusCode.BadRequest)
-                    }
-
-                    //call.respond(HttpStatusCode.OK)
-                }
-//                ChatEntity.findById(UUID.fromString("c194a6be-6d2e-42b0-8314-fffe93b6e6bc"))?.let {
-//                    val messages = it.messages.map { it.toMessage() }
-//                    val par = it.participants
-//                    println(par.map { it.mapUsers() })
-//                    call.respond(HttpStatusCode.OK)
+//        get("/testNewUser") {
+//            val userModel = UserModel(nickname = "Greg", email = "dsds", password = "dsd")
+//            println(userModel)
+//            val newUser = userRepo.createUser(userModel)?.let {
+//                println(it)
+//                call.respond(HttpStatusCode.OK, it)
+//            }
+//        }
+//
+//        post("/testNewChat") {
+//            println("calll ${call.parameters}")
+//            val uuid = UUID.fromString(call.parameters["id"])
+//            userRepo.getUserBy(uuid)?.let {
+//                val chat = NewChatRequestModel("test1", it.id.value)
+//                chatsDao.create(chat)?.let {
+//                    println(it)
+//                    call.respond(HttpStatusCode.OK, it)
 //                }
-//                UsserEntity.findById(UUID.fromString("5e95370c-9994-4686-acd6-530f6a8215e5"))?.let {
-//                    val users = it.ch
-//                    println(users)
-//                    call.respond(HttpStatusCode.OK)
+//            }
+//        }
+//
+//        get("/addM") {
+//            DatabaseSingleton.dbQuery {
+//                ChatEntity.findById(UUID.fromString("a7b552c0-4b0e-46fc-aa8b-5f8565f30096"))?.let {
+//                    val newMessage = MessageEntity.new {
+//                        message_text = "New test${Random().nextInt()} message"
+//                    }
+//
+//                    val user = UsserEntity.findById(UUID.fromString("d7835dfd-8904-4cc5-8847-4b13bbfd31bb"))
+//                    when(user) {
+//                        is UsserEntity -> {
+//                            var partForUpdate = it.participants.toMutableList()
+//                            partForUpdate.add(user)
+//                            val currentMessages = it.messages.toMutableList()
+//                            currentMessages.add(newMessage)
+//                            it.messages = SizedCollection(currentMessages)
+//                            println(partForUpdate)
+//                            it.participants = SizedCollection(partForUpdate)
+//                        }
+//                        else -> call.respond(HttpStatusCode.BadRequest)
+//                    }
+//
+//                    //call.respond(HttpStatusCode.OK)
 //                }
-            }
+////                ChatEntity.findById(UUID.fromString("c194a6be-6d2e-42b0-8314-fffe93b6e6bc"))?.let {
+////                    val messages = it.messages.map { it.toMessage() }
+////                    val par = it.participants
+////                    println(par.map { it.mapUsers() })
+////                    call.respond(HttpStatusCode.OK)
+////                }
+////                UsserEntity.findById(UUID.fromString("5e95370c-9994-4686-acd6-530f6a8215e5"))?.let {
+////                    val users = it.ch
+////                    println(users)
+////                    call.respond(HttpStatusCode.OK)
+////                }
+//            }
+//        }
+
+        get("/chats") {
+            println("Chats!!")
+            val userId: String? = call.parameters["id"]?.let {
+                it
+            } ?: null
+            println("id $userId")
+            if (userId == null) call.respond(HttpStatusCode.BadRequest)
+            val chats = chatsDao.getChatsBy(UUID.fromString(userId))
+            call.respond(HttpStatusCode.OK, chats)
         }
 
         authenticate("main") {
             get("/logIn") {
-                call.respond(LoginState(true))
+                // if problems happen remove block and uncomment last line
+                call.principal<JWTPrincipal>()?.let {
+                    val id = userService.getIdFrom(it)
+                    userRepo.getUserBy(id)?.mapUsers()?.let { model ->
+                        call.respond(
+                            HttpStatusCode.OK,
+                            UserLogInInfo(
+                                userInfo = model,
+                                loginState = LoginState(isAuthorized = true)
+                            )
+                        )
+                    } ?: call.respond(HttpStatusCode.BadRequest)
+                } ?: call.respond(HttpStatusCode.BadRequest)
             }
 
             get("/users") {
-                //val users = userRepo.getAllUsers()
-                //println("Get users: $users")
-                //call.respond(HttpStatusCode.OK, users)
+                val users = userRepo.getAllUsers()
+                newSuspendedTransaction {
+                    println("Get users: ${users.map { it.mapUsers() }}")
+                    call.respond(HttpStatusCode.OK, users.map { it.mapUsers() })
+                }
+            }
+
+            get("/users/bysearch") {
+                call.parameters["search_text"]?.let { searchText ->
+                    newSuspendedTransaction {
+                        val users = userRepo.getAllUsers()
+                            .filter { it.nickname.contains(searchText) }
+                            .map { it.mapUsers() }
+
+                        call.respond(HttpStatusCode.OK, users)
+                    }
+                } ?: call.respond(HttpStatusCode.BadRequest)
             }
         }
     }

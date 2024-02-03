@@ -5,6 +5,7 @@ plugins {
     kotlin("plugin.serialization") version "1.9.10"
     id("kotlin-parcelize")
     id("dev.icerock.mobile.multiplatform-resources")
+    id("app.cash.sqldelight")
 }
 
 kotlin {
@@ -44,15 +45,6 @@ kotlin {
     }
     
     sourceSets {
-        val androidMain by getting {
-            dependsOn(commonMain.get())
-            dependencies {
-                implementation(Dependencies.Kotlin.Ktor.okHttp)
-                implementation(Dependencies.Kotlin.SQL.android)
-                implementation(Dependencies.Koin.android)
-            }
-        }
-
         val commonMain by getting {
             dependencies {
                 implementation(Dependencies.Kotlin.Ktor.core)
@@ -68,6 +60,7 @@ kotlin {
                 implementation(Dependencies.MVI.main)
                 implementation(Dependencies.Koin.core)
                 api(Dependencies.Decompose.decompose)
+                implementation("app.cash.sqldelight:coroutines-extensions:2.0.1")
                 api("com.arkivanov.essenty:lifecycle:1.2.0")
                 api("dev.icerock.moko:resources:0.23.0")
                 implementation(project(":chats"))
@@ -84,16 +77,19 @@ kotlin {
             }
         }
 
-        val iosX64Main by getting {
-            //resources.srcDirs("build/generated/moko/iosX64Main/src")
-        }
-        val iosArm64Main by getting {
-            //resources.srcDirs("build/generated/moko/iosArm64Main/src")
-        }
-        val iosSimulatorArm64Main by getting {
-            //resources.srcDirs("build/generated/moko/iosSimulatorArm64Main/src")
+        val androidMain by getting {
+            dependsOn(commonMain)
+            dependencies {
+                implementation(Dependencies.Kotlin.Ktor.okHttp)
+                implementation(Dependencies.Kotlin.SQL.android)
+                implementation(Dependencies.Koin.android)
+                implementation("app.cash.sqldelight:android-driver:2.0.1")
+            }
         }
 
+        val iosX64Main by getting
+        val iosArm64Main by getting
+        val iosSimulatorArm64Main by getting
         val iosMain by creating {
             dependsOn(commonMain)
             iosX64Main.dependsOn(this)
@@ -103,6 +99,7 @@ kotlin {
                 implementation(Dependencies.Kotlin.Ktor.darwin)
                 implementation(Dependencies.Kotlin.SQL.ios)
                 api(Dependencies.Decompose.decompose)
+                implementation("app.cash.sqldelight:native-driver:2.0.1")
                 api("dev.icerock.moko:resources:0.23.0")
                 api(project(":chats"))
                 api(project(":core"))
@@ -120,15 +117,16 @@ android {
     defaultConfig {
         minSdk = 31
     }
-
-//    sourceSets["main"].apply {
-//        //manifest.srcFile("src/androidMain/AndroidManifest.xml")
-//        //res.srcDirs("src/androidMain/resources")
-//        resources.srcDirs("src/commonMain/resources")
-//        java.srcDirs("build/generated/moko/androidMain/src")
-//    }
 }
 
 multiplatformResources {
     multiplatformResourcesPackage = "com.example.mykmmtest"
+}
+
+sqldelight {
+    databases {
+        create("MainDatabase") {
+            packageName.set("com.example.mykmmtest")
+        }
+    }
 }

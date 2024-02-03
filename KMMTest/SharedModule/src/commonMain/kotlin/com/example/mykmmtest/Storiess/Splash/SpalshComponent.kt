@@ -48,6 +48,7 @@ class SplashComponent(
         SplashStoreFactory(
             storeFactory = scope.get(),
             authService = scope.get(),
+            localCache = scope.get(),
             onAuthUser = {
                 //navigation.push(Configuration.Chats)
             }
@@ -141,11 +142,9 @@ class SplashComponent(
             store.accept(SplashStore.Intent.RefreshToken)
         }
         is SplashStore.AuthorizeState.Autheticated -> {
-            println("PUSH Chats")
             navigation.push(Configuration.Chats)
         }
         is SplashStore.AuthorizeState.Reauth -> {
-            println("PUSH AUTH")
             navigation.push(Configuration.Auth)
         }
         else -> {}
@@ -169,7 +168,6 @@ interface Splash {
     val childStack: Value<ChildStack<*, Child>>
     val sheet: Value<ChildSlot<*, SheetChild>>
 
-    //fun checkAuthStatus()
     fun onBackPressed()
     fun navigateAuth()
     fun dismiss()

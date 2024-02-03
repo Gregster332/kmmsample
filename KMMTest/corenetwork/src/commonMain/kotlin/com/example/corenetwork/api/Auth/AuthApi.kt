@@ -5,6 +5,6 @@ import com.example.corenetwork.model.Auth.AuthState
 
 interface AuthApi {
     suspend fun generateToken(entity: SignUpRequestEntity)
-    suspend fun trySignInWithToken(): AuthState
+    suspend fun trySignInWithToken(): UserLogInInfo
     suspend fun refreshIdToken()
 }

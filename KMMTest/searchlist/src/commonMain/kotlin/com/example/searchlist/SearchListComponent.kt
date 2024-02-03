@@ -9,6 +9,8 @@ import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.bind
 import com.arkivanov.mvikotlin.extensions.coroutines.states
+import com.example.corenetwork.api.Auth.LocalCache
+import com.example.corenetwork.api.Auth.UserBaseInfo
 import com.example.corenetwork.api.Users.UsersApi
 import com.example.searchlist.store.SearchListStore
 import com.example.searchlist.store.SearchListStoreProvider
@@ -18,12 +20,14 @@ import kotlinx.coroutines.flow.map
 class SearchListComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
-    usersApi: UsersApi
+    usersApi: UsersApi,
+    db: LocalCache
 ): SearchList, ComponentContext by componentContext {
     private val store = instanceKeeper.getStore {
         SearchListStoreProvider.create(
             storeFactory = storeFactory,
-            usersApi = usersApi
+            usersApi = usersApi,
+            db = db
         )
     }
 
@@ -45,6 +49,14 @@ class SearchListComponent(
                 binder.stop()
             }
         )
+    }
+
+    override fun type(text: String) {
+        store.accept(SearchListStore.Intent.TypingText(text))
+    }
+
+    override fun cacheResult(user: UserBaseInfo) {
+        store.accept(SearchListStore.Intent.CacheNewResult(user))
     }
 
     private fun acceptState(state: SearchListStore.SearchListUIState) {

@@ -91,7 +91,8 @@ class MainPagesComponent(
         is MainPageConfiguration.Search -> SearchListComponent(
             componentContext = componentContext,
             storeFactory = scope.get(),
-            usersApi = usersApi
+            usersApi = usersApi,
+            db = scope.get()
         )
     }
 

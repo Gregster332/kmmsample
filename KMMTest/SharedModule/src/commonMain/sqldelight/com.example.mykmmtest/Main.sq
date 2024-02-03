@@ -1,0 +1,29 @@
+CREATE TABLE users (
+    id TEXT PRIMARY KEY NOT NULL,
+    nickname TEXT NOT NULL,
+    email TEXT NOT NULL,
+    password TEXT NOT NULL,
+    photoUrl TEXT,
+    bio TEXT
+);
+
+CREATE INDEX user_id ON users(nickname);
+
+selectAll:
+SELECT * FROM users;
+
+deleteAll:
+DELETE FROM users;
+
+selectUserById:
+SELECT * FROM users WHERE id = ?;
+
+saveNewUser:
+INSERT OR REPLACE INTO users (
+id,
+nickname,
+email,
+password,
+photoUrl,
+bio
+) VALUES (?, ?, ?, ?, ?, ?);

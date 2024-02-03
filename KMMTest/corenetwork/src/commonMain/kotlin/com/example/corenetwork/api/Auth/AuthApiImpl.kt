@@ -6,31 +6,21 @@ import com.example.corenetwork.model.Auth.AuthState
 import com.example.corenetwork.model.Auth.SignUpRequestEntity
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.request.get
-import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import io.ktor.util.Identity.decode
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.encodeToJsonElement
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+
 
 @Serializable
 public data class UserBaseInfo(
@@ -42,10 +32,27 @@ public data class UserBaseInfo(
     val bio: String? = null
 )
 
+@Serializable
+data class UserLogInInfo(
+    val userInfo: UserBaseInfo? = null,
+    val loginState: AuthState = AuthState(false, false)
+)
+
+interface LocalCache {
+    fun getAllUsers(): List<UserBaseInfo>
+    @Throws(NoSuchElementException::class)
+    fun getUserBy(id: String): UserBaseInfo?
+    fun deleteAllUsers()
+    fun saveNewUser(user: UserBaseInfo)
+}
+
 class AuthApiImpl(
     private val client: HttpClient,
     private val settings: SettingsPersistent
-): AuthApi {
+): AuthApi, KoinComponent {
+
+    private val localCache: LocalCache by inject()
+
     override suspend fun generateToken(entity: SignUpRequestEntity) = withContext(Dispatchers.IO) {
         val url = "http://localhost.proxyman.io:8080/signUp"
         try {
@@ -63,7 +70,7 @@ class AuthApiImpl(
         }
     }
 
-    override suspend fun trySignInWithToken(): AuthState = withContext(Dispatchers.IO) {
+    override suspend fun trySignInWithToken(): UserLogInInfo = withContext(Dispatchers.IO) {
         try {
             when (val token = settings.getString("AUTH_TOKEN")) {
                 is String -> {
@@ -71,7 +78,15 @@ class AuthApiImpl(
                         headers.append("Authorization", "Bearer ${token!!}")
                     }
 
-                    val decoded = Json.decodeFromString(AuthState.serializer(), response.bodyAsText())
+                    val decoded = Json.decodeFromString(
+                        UserLogInInfo.serializer(),
+                        response.bodyAsText()
+                    )
+
+                    decoded.userInfo?.let {
+                        localCache.saveNewUser(it)
+                    }
+
                     return@withContext decoded
                 }
                 else -> { throw Exception("token invalid") }

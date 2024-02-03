@@ -11,7 +11,7 @@ import SharedModule
 
 struct SearchListView: View {
     
-    let component: SearchList
+    private let component: SearchList
     
     @ObservedObject
     private var models: ObservableValue<SearchListStoreSearchListUIState>
@@ -25,6 +25,10 @@ struct SearchListView: View {
         ScrollView(.vertical) {
             ForEach(models.value.users, id: \.self) { user in
                 SearchListCell(name: user.nickname)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        component.cacheResult(user: user)
+                    }
             }
         }
     }
@@ -37,6 +41,7 @@ struct MainPageView: View {
     private var models: ObservableValue<MainPagesChildren>
     
     @FocusState private var focus: Bool
+    @State private var text: String = ""
     
     init(_ component: MainPages) {
         self.component = component
@@ -52,9 +57,9 @@ struct MainPageView: View {
                     HStack {
                         Image(systemName: "magnifyingglass")
                         
-                        TextField("", text: .constant("Hello"))
+                        TextField("", text: $text)
                             .focused($focus)
-                        
+                            
                     }
                     .padding(3)
                     .background {
@@ -62,12 +67,21 @@ struct MainPageView: View {
                             .fill(Color.gray.opacity(0.1))
                     }
                     .padding(.horizontal, 3)
+                    .onTapGesture {
+                        component.list(open: true)
+                    }
                 }
             
             ZStack {
                 Group {
                     if let search = models.value.searchListChild?.instance {
                         SearchListView(component: search)
+                            .onAppear {
+                                focus = true
+                            }
+                            .onChange(of: text) { newValue in
+                                (search as SearchList).type(text: newValue)
+                            }
                     } else {
                         ChatsView(
                             component: models.value.mainChild.instance
@@ -81,17 +95,27 @@ struct MainPageView: View {
         .viewBackground(
             color: MR.colors.shared.backgroundColor.getUIColor()
         )
-        .onAppear {
-            focus = false
-        }
-        .onChange(of: focus) { newValue in
-            component.list(open: newValue)
-        }
+       
         .toolbar(content: {
             ToolbarItem(placement: .principal) {
                 Text(models.value.searchListChild?.instance != nil ? "Search" : "Chats")
                     .font(.system(size: 18, weight: .medium))
                     .foregroundStyle(.primary)
+            }
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                if models.value.searchListChild?.instance != nil {
+                    Button {
+                        focus = false
+                        text = ""
+                        component.list(open: false)
+                    } label: {
+                        Image(systemName: "xmark")
+                            .foregroundStyle(.white)
+                    }
+                } else {
+                    EmptyView()
+                }
             }
         })
         .navigationBarTitleDisplayMode(.inline)
@@ -103,13 +127,12 @@ struct SearchListCell: View {
     
     let name: String
     
+    private let randomColors = [Color.blue, Color.red, .yellow, .green, .orange]
+    
     var body: some View {
         VStack {
             HStack {
-                Circle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(height: 37)
-                
+                nicknameCircle()
                 Text(name)
             }
             .frame(maxWidth: .infinity, maxHeight: 40, alignment: .leading)
@@ -117,6 +140,17 @@ struct SearchListCell: View {
             
             Divider()
         }
+    }
+    
+    @ViewBuilder
+    private func nicknameCircle() -> some View {
+        ZStack {
+            Circle()
+                .fill(randomColors.randomElement()!.opacity(0.3))
+                
+            Text(name.first?.uppercased() ?? "")
+        }
+        .frame(height: 37)
     }
 }
 

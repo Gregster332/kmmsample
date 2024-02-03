@@ -34,7 +34,7 @@ class JwtService(
         val userInfo: UserModel? = id?.let {
             withContext(Dispatchers.IO) {
                 //userRepo.userByNickname(userNickname)
-                userRepo.getBy(UUID.fromString(it))
+                userRepo.getUserBy(UUID.fromString(it))?.mapUsers()
             }
         }
 
@@ -59,6 +59,8 @@ class JwtService(
     }
 
     fun matchAudience(a: String): Boolean = this.audience == a
+
+    fun getId(cred: JWTPrincipal): String = cred.payload.getClaim("id").asString()
 
     private fun isAudienceMatches(credentials: JWTCredential): Boolean =
         credentials.payload.audience.contains(audience)

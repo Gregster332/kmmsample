@@ -5,11 +5,12 @@ import com.example.corenetwork.api.Auth.UserBaseInfo
 
 interface SearchListStore: Store<SearchListStore.Intent, SearchListStore.SearchListUIState, Nothing> {
     sealed interface Intent {
-        data object LoadUsers: Intent
+        data class TypingText(val text: String): Intent
+        data class CacheNewResult(val result: UserBaseInfo): Intent
     }
 
     sealed interface Action {
-        data object LoadUsersInitially: Action
+        data object LoadUsers: Action
     }
 
     data class SearchListUIState(

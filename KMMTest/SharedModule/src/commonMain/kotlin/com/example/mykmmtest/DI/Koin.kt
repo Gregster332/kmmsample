@@ -4,9 +4,12 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.logging.logger.Logger
 import com.arkivanov.mvikotlin.logging.store.LoggingStoreFactory
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
+import com.example.corenetwork.api.Auth.LocalCache
 import com.example.corenetwork.api.Chats.WebSocketService
 import com.example.corenetwork.api.SecurePersistant.SettingsPersistent
+import com.example.mykmmtest.MainDatabase
 import com.example.mykmmtest.Services.WebSocketServiceImpl
+import com.example.mykmmtest.Utils.LocalCacheImpl
 import org.koin.core.context.startKoin
 import org.koin.core.module.Module
 import org.koin.dsl.KoinAppDeclaration
@@ -16,14 +19,20 @@ fun initKoin(
     block: KoinAppDeclaration = {},
     appDeclaration: Module
 ) {
-    //Firebase.in
     startKoin {
         block()
         modules(
             appDeclaration,
             platformModule,
+            coreBD,
             services()
         )
+    }
+}
+
+internal var coreBD = module {
+    single {
+        MainDatabase(get())
     }
 }
 
@@ -42,6 +51,10 @@ fun services(
 ) = module {
     factory<WebSocketService> {
         WebSocketServiceImpl()
+    }
+
+    single<LocalCache> {
+        LocalCacheImpl()
     }
 }
 

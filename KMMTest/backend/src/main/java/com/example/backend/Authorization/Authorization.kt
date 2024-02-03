@@ -5,19 +5,31 @@ import com.example.backend.Authorization.Models.TokensResponse
 import com.example.backend.Authorization.Tokens.RefreshTokenRepository
 import com.example.backend.DB.UserModel
 import com.example.backend.DB.UsersDao
+import com.example.backend.DB.UsserEntity
 import com.example.backend.DB.toUserModel
+import com.example.backend.DB.toWebModel
 import com.example.backend.Models.LoginState
 import com.example.backend.UserBaseInfo
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.jwt.JWTCredential
+import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.response.respond
 import io.ktor.util.logging.Logger
+import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.postgresql.util.PSQLException
 import java.util.UUID
+
+@Serializable
+data class UserLogInInfo(
+    val userInfo: UserModel? = null,
+    val loginState: LoginState = LoginState()
+)
 
 fun Application.configureAuth(
     jwtService: JwtService
@@ -33,7 +45,10 @@ fun Application.configureAuth(
             challenge { _, _ ->
                 call.request.headers["Authorization"]?.let {
                     if (it.isNotEmpty()) {
-                       call.respond(LoginState(isAccessTokenExpired = true))
+                        call.respond(
+                            HttpStatusCode.OK,
+                            UserLogInInfo(loginState = LoginState(isAccessTokenExpired = true))
+                        )
                     } else {
                         throw BadRequestException("Authorization header can not be blank!")
                     }
@@ -54,11 +69,9 @@ class UserAuthenticator(
             "start finding user data with $userInfo"
         )
 
-        //println("USERSSSSSSS: ${userRepo.allUsers()}")
         var foundUser: UserModel?
         try {
-            //foundUser = userRepo.userByNickname(userInfo.nickname)
-            foundUser = userRepo.getBy(UUID.fromString(userInfo.id))
+            foundUser = userRepo.getUserBy(UUID.fromString(userInfo.id))?.mapUsers()
         } catch (e: PSQLException) {
             println("Erroe: ${e.message}")
            foundUser = null
@@ -69,21 +82,25 @@ class UserAuthenticator(
         )
 
         return if (foundUser == null) {
-
             logger.info(
                 "saving new user: $userInfo"
             )
 
-            //userRepo.addNewUser(userInfo)
-            userRepo.create(userInfo.toUserModel())
+            return userRepo.createUser(userInfo.toUserModel()).let {
+                if (it is UsserEntity) {
+                    //println(userRepo.getAllUsers())
+
+                    logger.info(
+                        "new user saved: $it"
+                    )
+
+                    it.mapUsers().toWebModel()
+                } else {
+                    null
+                }
+            }
             //userRepo.insert(.toUserModel())
-            println(userRepo.getAll())
 
-            logger.info(
-                "new user saved: $userInfo"
-            )
-
-            userInfo
         } else {
             null
         }
@@ -92,18 +109,17 @@ class UserAuthenticator(
     suspend fun auth(userInfo: UserBaseInfo): TokensResponse? {
 
         logger.info(
-            "Auth process started for user with nickname ${userInfo.nickname}"
+            "Auth process started for user with nickname ${userInfo.nickname} and id ${userInfo.id}"
         )
 
-        val nickname = userInfo.nickname
-        //val foundUser: UserModel? = userRepo.userByNickname(nickname)
-        val foundUser: UserModel? = userRepo.getBy(UUID.fromString(userInfo.id))
+        val foundUser: UserModel? = userRepo.getUserBy(UUID.fromString(userInfo.id))?.mapUsers()
 
         logger.info(
             "Found user with nickname ${userInfo.nickname} and password ${userInfo.password}"
         )
-
-        return if (foundUser != null && foundUser.email == userInfo.email) {
+        println(userInfo.nickname)
+        println(foundUser)
+        return if (foundUser != null && foundUser.nickname == userInfo.nickname) {
             val accessToken = jwtService.createAccessToken(userInfo)
             val refreshToken = jwtService.createRefreshToken(userInfo)
 
@@ -140,7 +156,7 @@ class UserAuthenticator(
 
         return if(decodedRefreshToken != null && persistedId != null) {
             //val foundUser: UserModel? = userRepo.userById(persistedId)
-            val foundUser = userRepo.getBy(UUID.fromString(persistedId))
+            val foundUser = userRepo.getUserBy(UUID.fromString(persistedId))?.mapUsers()
             val nicknameFormRefreshToken: String? = decodedRefreshToken.getClaim("nickname").asString()
 
             logger.info(
@@ -158,6 +174,8 @@ class UserAuthenticator(
             null
         }
     }
+
+    suspend fun getIdFrom(credentials: JWTPrincipal) = UUID.fromString(jwtService.getId(credentials))
 
     private fun verifyRefreshToken(token: String): DecodedJWT? {
         val decodedJWT: DecodedJWT? = getDecodedJwt(token)
