@@ -28,6 +28,7 @@ struct SearchListView: View {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         component.cacheResult(user: user)
+                        //component.onTap()
                     }
             }
         }
@@ -80,7 +81,9 @@ struct MainPageView: View {
                                 focus = true
                             }
                             .onChange(of: text) { newValue in
-                                (search as SearchList).type(text: newValue)
+                                if !newValue.isEmpty {
+                                    (search as SearchList).type(text: newValue)
+                                }
                             }
                     } else {
                         ChatsView(
@@ -88,7 +91,7 @@ struct MainPageView: View {
                         )
                     }
                 }
-                .transition(AnyTransition .opacity.animation(.smooth))
+                .transition(AnyTransition.opacity.animation(.smooth))
             }
             
         }

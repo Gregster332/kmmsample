@@ -40,6 +40,7 @@ kotlin {
             export(project(":corenetwork"))
             export(project(":apptheme"))
             export(project(":searchlist"))
+            export(project(":authentication"))
         }
         //extraSpecAttributes["resources"] = "['src/commonMain/resources/**']"
     }
@@ -68,6 +69,7 @@ kotlin {
                 implementation(project(":core"))
                 implementation(project(":corenetwork"))
                 implementation(project(":searchlist"))
+                implementation(project(":authentication"))
             }
         }
 
@@ -106,6 +108,7 @@ kotlin {
                 api(project(":corenetwork"))
                 api(project(":apptheme"))
                 api(project(":searchlist"))
+                api(project(":authentication"))
             }
         }
     }
@@ -127,6 +130,13 @@ sqldelight {
     databases {
         create("MainDatabase") {
             packageName.set("com.example.mykmmtest")
+//            version = 4
+//            verifyDefinitions.set(true)
+            verifyMigrations.set(true)
+//            migrationOutputFileFormat.set(".sqm")
+//            //deriveSchemaFromMigrations.set(true)
+//            schemaOutputDirectory.set(file("src/commonMain/sqldelight/com/example/mykmmtest"))
+//            migrationOutputDirectory.set(file("src/commonMain/sqldelight/com/example/mykmmtest"))
         }
     }
 }

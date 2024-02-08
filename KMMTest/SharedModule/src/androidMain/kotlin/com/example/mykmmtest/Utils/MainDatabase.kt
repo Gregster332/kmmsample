@@ -7,6 +7,6 @@ import com.example.mykmmtest.MainDatabase
 
 actual class DriverFactory(private val context: Context) {
     actual fun createDriver(): SqlDriver {
-        return AndroidSqliteDriver(MainDatabase.Schema, context, "MainDatabse.db")
+        return AndroidSqliteDriver(MainDatabase.Schema, context, "MainDatabase.db")
     }
 }

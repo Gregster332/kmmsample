@@ -24,7 +24,7 @@ val coreNetworkModule = module {
 //    }
 
     single<ChatsApi> {
-        ChatsApiImpl(get())
+        ChatsApiImpl(get(), get())
     }
 
     single<AuthApi> {

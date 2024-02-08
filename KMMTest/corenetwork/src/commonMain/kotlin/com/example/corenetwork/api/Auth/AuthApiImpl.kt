@@ -38,12 +38,34 @@ data class UserLogInInfo(
     val loginState: AuthState = AuthState(false, false)
 )
 
+@Serializable
+data class DBUser(
+    val id: String,
+    val nickname: String,
+    val email: String,
+    val photoUrl: String? = null,
+    val bio: String? = null,
+    val current: Boolean = false,
+)
+
+fun UserBaseInfo.mapToRequestModel(isCurrent: Boolean = false) = DBUser(
+    id = id,
+    nickname = nickname,
+    email = email,
+    photoUrl = photoUrl,
+    bio = bio,
+    current = isCurrent
+)
+
+fun DBUser.mapToWebModel() = UserBaseInfo
+
 interface LocalCache {
-    fun getAllUsers(): List<UserBaseInfo>
+    fun getAllUsers(): List<DBUser>
     @Throws(NoSuchElementException::class)
-    fun getUserBy(id: String): UserBaseInfo?
+    fun getUserBy(id: String): DBUser?
     fun deleteAllUsers()
-    fun saveNewUser(user: UserBaseInfo)
+    fun saveNewUser(user: DBUser)
+    fun getCurrentUser(): DBUser?
 }
 
 class AuthApiImpl(
@@ -84,7 +106,7 @@ class AuthApiImpl(
                     )
 
                     decoded.userInfo?.let {
-                        localCache.saveNewUser(it)
+                        localCache.saveNewUser(it.mapToRequestModel(true))
                     }
 
                     return@withContext decoded

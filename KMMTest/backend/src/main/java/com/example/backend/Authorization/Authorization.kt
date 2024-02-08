@@ -14,14 +14,12 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.jwt.JWTCredential
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.response.respond
 import io.ktor.util.logging.Logger
 import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.postgresql.util.PSQLException
 import java.util.UUID
 
@@ -88,8 +86,6 @@ class UserAuthenticator(
 
             return userRepo.createUser(userInfo.toUserModel()).let {
                 if (it is UsserEntity) {
-                    //println(userRepo.getAllUsers())
-
                     logger.info(
                         "new user saved: $it"
                     )
@@ -99,8 +95,6 @@ class UserAuthenticator(
                     null
                 }
             }
-            //userRepo.insert(.toUserModel())
-
         } else {
             null
         }
@@ -117,8 +111,7 @@ class UserAuthenticator(
         logger.info(
             "Found user with nickname ${userInfo.nickname} and password ${userInfo.password}"
         )
-        println(userInfo.nickname)
-        println(foundUser)
+
         return if (foundUser != null && foundUser.nickname == userInfo.nickname) {
             val accessToken = jwtService.createAccessToken(userInfo)
             val refreshToken = jwtService.createRefreshToken(userInfo)

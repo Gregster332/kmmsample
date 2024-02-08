@@ -1,16 +1,19 @@
+import kotlin.Boolean;
+
 CREATE TABLE users (
     id TEXT PRIMARY KEY NOT NULL,
-    nickname TEXT NOT NULL,
-    email TEXT NOT NULL,
-    password TEXT NOT NULL,
+    nickname TEXT NOT NULL DEFAULT "",
+    email TEXT NOT NULL DEFAULT "",
     photoUrl TEXT,
-    bio TEXT
+    bio TEXT,
+    current INTEGER AS Boolean NOT NULL DEFAULT 0
 );
-
-CREATE INDEX user_id ON users(nickname);
 
 selectAll:
 SELECT * FROM users;
+
+selectCurrentUser:
+SELECT * FROM users WHERE current = 1;
 
 deleteAll:
 DELETE FROM users;
@@ -23,7 +26,8 @@ INSERT OR REPLACE INTO users (
 id,
 nickname,
 email,
-password,
 photoUrl,
-bio
-) VALUES (?, ?, ?, ?, ?, ?);
+bio,
+current
+)
+VALUES (?, ?, ?, ?, ?, ?);

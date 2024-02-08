@@ -38,7 +38,7 @@ internal class ChatsStoreProvider(
             intent: ChatsStore.ChatsIntent,
             getState: () -> ChatsStore.ChatsUiState
         ) = when(intent) {
-            is ChatsStore.ChatsIntent.TryLoadChats -> {}
+            is ChatsStore.ChatsIntent.TryLoadChats -> getAllChats()
         }
 
         override suspend fun suspendExecuteAction(
@@ -50,10 +50,11 @@ internal class ChatsStoreProvider(
 
         private suspend fun getAllChats() {
             try {
-//                val chats = chatsApi.getAllUserChats()
-//                dispatch(Message.Chats(chats))
+                val chats = chatsApi.getAllChats()
+                dispatch(Message.Chats(chats))
             } catch(e: Exception) {
-                //dispatch(Message.Error(e.message ?: ""))
+                println(e)
+                dispatch(Message.Error(e.message ?: ""))
             }
         }
     }

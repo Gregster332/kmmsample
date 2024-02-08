@@ -21,15 +21,12 @@ import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.extensions.coroutines.bind
 import com.arkivanov.mvikotlin.extensions.coroutines.states
 import com.example.apptheme.AppThemeComponent
-import com.example.chats.api.ChatsComponent
+import com.example.authentication.Auth.SignUpComponent
 import com.example.core.koin.ComponentKoinContext
 import com.example.corenetwork.di.coreNetworkModule
 import com.example.mykmmtest.DI.services
 import com.example.mykmmtest.DI.storeFactoryModule
-import com.example.mykmmtest.Storiess.Auth.AuthComponent
 import com.example.mykmmtest.Storiess.MainPage.MainPagesComponent
-import com.example.searchlist.SearchList
-import com.example.searchlist.SearchListComponent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 
@@ -50,7 +47,6 @@ class SplashComponent(
             authService = scope.get(),
             localCache = scope.get(),
             onAuthUser = {
-                //navigation.push(Configuration.Chats)
             }
         ).create()
     }
@@ -110,7 +106,7 @@ class SplashComponent(
                 )
             )
             is Configuration.Auth -> Splash.Child.Auth(
-                AuthComponent(
+                SignUpComponent(
                     componentContext = componentContext,
                     storeFactory = scope.get(),
                     authApi = scope.get(),
@@ -175,7 +171,7 @@ interface Splash {
     sealed class Child {
         data object Main: Child()
         class ChatsMain(val component: MainPagesComponent): Child()
-        class Auth(val component: AuthComponent): Child()
+        class Auth(val component: SignUpComponent): Child()
     }
 
     sealed class SheetChild {

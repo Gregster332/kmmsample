@@ -2,31 +2,11 @@ package com.example.corenetwork.api.Users
 
 import com.example.corenetwork.api.Auth.LocalCache
 import com.example.corenetwork.api.Auth.UserBaseInfo
-import com.example.corenetwork.api.Chats.Chat
-import com.example.corenetwork.api.Chats.Result
 import com.example.corenetwork.api.SecurePersistant.SettingsPersistent
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
-import kotlin.coroutines.coroutineContext
-import kotlin.reflect.KClass
-import kotlin.reflect.cast
 
 open class NetworkException(message: String): Exception(message)
 

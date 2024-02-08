@@ -67,11 +67,15 @@ class ChatEntity(id: EntityID<UUID>): UUIDEntity(id) {
 }
 
 class ChatsDao {
-    suspend fun create(entity: NewChatRequestModel) = DatabaseSingleton.dbQuery {
+    suspend fun create(
+        entity: NewChatRequestModel,
+        initialUsers: List<UsserEntity> = emptyList()
+    ) = DatabaseSingleton.dbQuery {
         ChatEntity.new {
             name = entity.name
             ownerId = entity.ownerId
             messages = SizedCollection(listOf())
+            participants = SizedCollection(initialUsers)
         }.mapChat()
     }
 

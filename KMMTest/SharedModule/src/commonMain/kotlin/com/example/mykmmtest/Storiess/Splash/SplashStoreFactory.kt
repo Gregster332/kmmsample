@@ -77,12 +77,7 @@ internal class SplashExecutor(
 
     private suspend fun checkAuthStatus() {
         dispatch(SplashStoreFactory.SplashMessage.Loading)
-
-        //localCache.deleteAllUsers()
-        println("Hello db")
-        println(localCache.getAllUsers())
-        println("bye db")
-
+        
         try {
             val status = authService.trySignInWithToken()
 
@@ -95,8 +90,8 @@ internal class SplashExecutor(
             }
         } catch(e: Exception) {
             println(e)
-            //dispatch(SplashStoreFactory.SplashMessage.NeedsReauth)
-            dispatch(SplashStoreFactory.SplashMessage.AuthAlready)
+            dispatch(SplashStoreFactory.SplashMessage.NeedsReauth)
+            //dispatch(SplashStoreFactory.SplashMessage.AuthAlready)
         }
     }
 

@@ -4,7 +4,6 @@ import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.children.ChildNavState
 import com.arkivanov.decompose.router.children.NavState
-import com.arkivanov.decompose.router.children.NavigationSource
 import com.arkivanov.decompose.router.children.SimpleChildNavState
 import com.arkivanov.decompose.router.children.SimpleNavigation
 import com.arkivanov.decompose.router.children.children
@@ -23,7 +22,7 @@ import com.example.mykmmtest.DI.services
 import com.example.mykmmtest.DI.storeFactoryModule
 import com.example.searchlist.SearchListComponent
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
+import kotlinx.coroutines.flow.MutableSharedFlow
 
 sealed class MainPageConfiguration: Parcelable {
     @Parcelize
@@ -58,6 +57,7 @@ class MainPagesComponent(
     )
 
     private val navigation = SimpleNavigation<(NavigationState) -> NavigationState>()
+    private val eventsFlow = MutableSharedFlow<String>()
 
     override val children: Value<MainPages.Children> = children(
         source = navigation,
@@ -82,17 +82,19 @@ class MainPagesComponent(
         is MainPageConfiguration.Main -> ChatsComponent(
             componentContext = componentContext,
             storeFactory = scope.get(),
-            chatsApi = chatsApi,
-            didTapOnChatScreen = {
-                println("Did Tap on chat")
-            }
+            chatsApi = chatsApi
         )
 
         is MainPageConfiguration.Search -> SearchListComponent(
             componentContext = componentContext,
             storeFactory = scope.get(),
             usersApi = usersApi,
-            db = scope.get()
+            chatsApi = chatsApi,
+            db = scope.get(),
+            onTapUser = {
+                println("dsdsdsdsdsds")
+                children.value.mainChild.instance.tryLoadChats()
+            }
         )
     }
 

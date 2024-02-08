@@ -29,6 +29,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.request.receive
+import io.ktor.server.request.receiveNullable
 import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
@@ -72,6 +73,7 @@ fun Application.module() {
     configureAuth(jwtService)
     configureWebSocket()
     configureRouting(userAuthenticator, userRepo, chats, messages)
+    chatsRouting(userRepo, chats)
 }
 
 
@@ -90,13 +92,38 @@ fun Application.configureRouting(
     routing {
         //val users = Collections.synchronizedSet<UserBaseInfo>(LinkedHashSet())
 
+        get("test") {
+            call.respond(HttpStatusCode.OK)
+        }
+
         post("/signUp") {
             val userInfo = call.receive<UserBaseInfo>()
+
+            val isUserExists = newSuspendedTransaction { -> Boolean
+                return@newSuspendedTransaction userRepo.getUserBy(userInfo.nickname)?.firstOrNull()?.mapUsers()?.toWebModel()
+                    .let { user -> Boolean
+                        if (user != null) {
+                            println(it)
+                            val tokenResponse = userService.auth(user)
+                            tokenResponse?.let {
+                                call.respond(tokenResponse)
+                                true
+                            } ?: false
+                        } else {
+                            call.respond(HttpStatusCode.Unauthorized)
+                            false
+                        }
+                    }
+            }
+
+            if (isUserExists) {
+                return@post
+            }
 
             val user = userService.saveNewUser(
                 userInfo
             ) ?: return@post call.respond(HttpStatusCode.BadRequest)
-
+            println("dsdssdsssdsd")
             val tokenResponse = userService.auth(user)
 
             tokenResponse?.let {
@@ -175,16 +202,7 @@ fun Application.configureRouting(
 //            }
 //        }
 
-        get("/chats") {
-            println("Chats!!")
-            val userId: String? = call.parameters["id"]?.let {
-                it
-            } ?: null
-            println("id $userId")
-            if (userId == null) call.respond(HttpStatusCode.BadRequest)
-            val chats = chatsDao.getChatsBy(UUID.fromString(userId))
-            call.respond(HttpStatusCode.OK, chats)
-        }
+
 
         authenticate("main") {
             get("/logIn") {
@@ -225,6 +243,56 @@ fun Application.configureRouting(
         }
     }
 }
+
+fun Application.chatsRouting(
+    usersDao: UsersDao,
+    chatsDao: ChatsDao
+) {
+    routing {
+        authenticate("main") {
+            get("/chats") {
+                println("Chats!!")
+                val userId: String? = call.parameters["userId"]?.let {
+                    it
+                } ?: null
+                println("id $userId")
+                if (userId == null) call.respond(HttpStatusCode.BadRequest)
+                val chats = chatsDao.getChatsBy(UUID.fromString(userId))
+                call.respond(HttpStatusCode.OK, chats)
+            }
+
+            post("/chats/create") {
+                println("Chats create!!")
+                call.receiveNullable<CreateFaceToFaceChatRequest>()?.let {
+                    val owner = usersDao.getUserBy(it.ownerId)
+                    val opponent = usersDao.getUserBy(it.opponent)
+
+                    if (owner != null && opponent != null) {
+                        val newChat = chatsDao.create(it.mapTo(), listOf(owner, opponent))
+                        call.respond(HttpStatusCode.OK, newChat)
+                    } else {
+                        call.respond(HttpStatusCode.NotFound)
+                    }
+                } ?: call.respond(HttpStatusCode.BadRequest)
+            }
+        }
+    }
+}
+
+@Serializable
+data class CreateFaceToFaceChatRequest(
+    val name: String,
+    @Serializable(with = UUIDSerializer::class)
+    val ownerId: UUID,
+    @Serializable(with = UUIDSerializer::class)
+    val opponent: UUID
+)
+
+fun CreateFaceToFaceChatRequest.mapTo() = NewChatRequestModel(
+    name = name,
+    ownerId = ownerId
+)
+
 
 @Serializable
 data class NewChatRequestModel(

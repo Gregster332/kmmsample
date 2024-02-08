@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ChatUnit(
     val name: String,
-    val participants: List<User>
+    val ownerId: String,
+   // val participants: List<User>
 )

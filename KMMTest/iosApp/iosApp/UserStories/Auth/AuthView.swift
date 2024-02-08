@@ -42,18 +42,17 @@ struct AuthView: View {
     
     @FocusState private var focus: AuthTextFieldState?
     
-    private let component: AuthComponent
+    private let component: SignUpComponent
     
     @ObservedObject
-    private var models: ObservableValue<AuthStoreUIAuthState>
+    private var models: ObservableValue<SignUpStoreUISignUpState>
     
-    init(component: AuthComponent) {
+    init(component: SignUpComponent) {
         self.component = component
         self.models = ObservableValue(component.state)
     }
     
     var body: some View {
-        //AnimateGradientView()
         VStack(spacing: 26) {
             Spacer()
             

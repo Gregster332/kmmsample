@@ -1,4 +1,4 @@
-package com.example.mykmmtest.Storiess.Auth
+package com.example.authentication.Auth
 
 import com.arkivanov.mvikotlin.core.store.Reducer
 import com.arkivanov.mvikotlin.core.store.Store
@@ -8,10 +8,9 @@ import com.example.corenetwork.api.Auth.AuthApi
 import com.example.corenetwork.api.SecurePersistant.SettingsPersistent
 import com.example.corenetwork.model.Auth.SignUpRequestEntity
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.delay
 
-interface AuthStore : Store<AuthStore.Intent, AuthStore.UIAuthState, Nothing> {
-    data class UIAuthState(
+interface SignUpStore : Store<SignUpStore.Intent, SignUpStore.UISignUpState, Nothing> {
+    data class UISignUpState(
         val nickname: Field = Field(),
         val phoneNumberState: Field = Field(),
         val passwordState: Field = Field(),
@@ -34,45 +33,45 @@ interface AuthStore : Store<AuthStore.Intent, AuthStore.UIAuthState, Nothing> {
     }
 }
 
-class AuthStoreFactory(
+class SignUpStoreFactory(
     private val storeFactory: StoreFactory,
     private val authService: AuthApi,
     private val settings: SettingsPersistent
 ) {
-    fun create(): AuthStore = object :
-        AuthStore,
-        Store<AuthStore.Intent, AuthStore.UIAuthState, Nothing> by storeFactory.create(
-            name = AuthStore::class.simpleName,
-            initialState = AuthStore.UIAuthState(),
+    fun create(): SignUpStore = object :
+        SignUpStore,
+        Store<SignUpStore.Intent, SignUpStore.UISignUpState, Nothing> by storeFactory.create(
+            name = SignUpStore::class.simpleName,
+            initialState = SignUpStore.UISignUpState(),
             bootstrapper = null,
             executorFactory = {
-                AuthExecutor(authService, settings)
+                SignUpExecutor(authService, settings)
             },
-            reducer = AuthReducer()
+            reducer = SignUpReducer()
         ) {}
 
-    sealed interface AuthMessage {
-        data class NicknameField(val field: AuthStore.Field): AuthMessage
-        data class PhoneNumberField(val field: AuthStore.Field): AuthMessage
-        data class PasswordField(val field: AuthStore.Field): AuthMessage
-        data object Success: AuthMessage
-        data class OnError(val s: String): AuthMessage
-        data object ResetError: AuthMessage
+    sealed interface SignUpMessage {
+        data class NicknameField(val field: SignUpStore.Field): SignUpMessage
+        data class PhoneNumberField(val field: SignUpStore.Field): SignUpMessage
+        data class PasswordField(val field: SignUpStore.Field): SignUpMessage
+        data object Success: SignUpMessage
+        data class OnError(val s: String): SignUpMessage
+        data object ResetError: SignUpMessage
     }
 
-    internal class AuthExecutor(
+    internal class SignUpExecutor(
         private val authService: AuthApi,
         private val settings: SettingsPersistent
-    ): BaseExecutor<AuthStore.Intent, Nothing, AuthStore.UIAuthState, AuthMessage, Nothing>() {
+    ): BaseExecutor<SignUpStore.Intent, Nothing, SignUpStore.UISignUpState, SignUpMessage, Nothing>() {
         override suspend fun suspendExecuteIntent(
-            intent: AuthStore.Intent,
-            getState: () -> AuthStore.UIAuthState
+            intent: SignUpStore.Intent,
+            getState: () -> SignUpStore.UISignUpState
         ) = when (intent) {
-            is AuthStore.Intent.StartFlow -> {}
-            is AuthStore.Intent.ValidateNickname -> validateNickName(intent.text)
-            is AuthStore.Intent.ValidatePhoneNumber -> validatePhoneNumber(intent.text)
-            is AuthStore.Intent.ValidatePassword -> validatePassword(intent.text)
-            is AuthStore.Intent.TryAuthPassword -> passwordAuth(
+            is SignUpStore.Intent.StartFlow -> {}
+            is SignUpStore.Intent.ValidateNickname -> validateNickName(intent.text)
+            is SignUpStore.Intent.ValidatePhoneNumber -> validatePhoneNumber(intent.text)
+            is SignUpStore.Intent.ValidatePassword -> validatePassword(intent.text)
+            is SignUpStore.Intent.TryAuthPassword -> passwordAuth(
                 getState()
             )
             else -> {}
@@ -80,49 +79,51 @@ class AuthStoreFactory(
 
         private fun validateNickName(t: String) {
             if (t.isEmpty()) {
-                dispatch(AuthMessage.NicknameField(AuthStore.Field(t, isError = true)))
+                dispatch(SignUpMessage.NicknameField(SignUpStore.Field(t, isError = true)))
                 return
             }
-            dispatch(AuthMessage.NicknameField(AuthStore.Field(t, isValid = true)))
+            dispatch(SignUpMessage.NicknameField(SignUpStore.Field(t, isValid = true)))
         }
 
         private fun validatePhoneNumber(t: String) {
             if (t.isEmpty()) {
-                dispatch(AuthMessage.PhoneNumberField(AuthStore.Field(t)))
+                dispatch(SignUpMessage.PhoneNumberField(SignUpStore.Field(t)))
                 return
             }
 
 //            val regex = Regex("^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}\$")
 //            if (regex.matches(t))
-                dispatch(AuthMessage.PhoneNumberField(field = AuthStore.Field(t, isValid = true)))
+                dispatch(SignUpMessage.PhoneNumberField(field = SignUpStore.Field(t, isValid = true)))
 //            else
 //                dispatch(AuthMessage.PhoneNumberField(field = AuthStore.Field(t, isError = true)))
         }
 
         private fun validatePassword(t: String) {
             if (t.isEmpty()) {
-                dispatch(AuthMessage.PasswordField(field = AuthStore.Field(t)))
+                dispatch(SignUpMessage.PasswordField(field = SignUpStore.Field(t)))
                 return
             }
 
             val regex = Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@\$!%*?&])[A-Za-z\\d@\$!%*?&]{8,}\$")
             if (regex.matches(t))
-                dispatch(AuthMessage.PasswordField(field = AuthStore.Field(t, isValid = true)))
+                dispatch(SignUpMessage.PasswordField(field = SignUpStore.Field(t, isValid = true)))
             else
-                dispatch(AuthMessage.PasswordField(field = AuthStore.Field(t, isError = true)))
+                dispatch(SignUpMessage.PasswordField(field = SignUpStore.Field(t, isError = true)))
         }
 
         private suspend fun tokenAuth() {
             try {
                 val state = authService.trySignInWithToken()
-                if (state.loginState.isAuthorized) dispatch(AuthMessage.Success) else dispatch(AuthMessage.OnError("Empty"))
+                if (state.loginState.isAuthorized) dispatch(SignUpMessage.Success) else dispatch(
+                    SignUpMessage.OnError("Empty")
+                )
             } catch(e: Exception) {
-                dispatch(AuthMessage.OnError(e.message ?: ""))
+                dispatch(SignUpMessage.OnError(e.message ?: ""))
             }
         }
 
         private suspend fun passwordAuth(
-            currentState: AuthStore.UIAuthState
+            currentState: SignUpStore.UISignUpState
         ) {
             if (currentState.phoneNumberState.isValid && currentState.passwordState.isValid) {
                 try {
@@ -135,38 +136,38 @@ class AuthStoreFactory(
                     when (val token = settings.getString("AUTH_TOKEN")) {
                         is String -> {
                             println("TOKEN: $token")
-                            dispatch(AuthMessage.Success)
+                            dispatch(SignUpMessage.Success)
                         }
                        else -> throw CancellationException("")
                     }
                 } catch (e: Exception) {
                     println("errrrororor: $e")
-                    dispatch(AuthMessage.OnError(e.message ?: ""))
+                    dispatch(SignUpMessage.OnError(e.message ?: ""))
                 }
             }
         }
     }
 
-    internal class AuthReducer: Reducer<AuthStore.UIAuthState, AuthMessage> {
-        override fun AuthStore.UIAuthState.reduce(
-            msg: AuthMessage
-        ): AuthStore.UIAuthState = when (msg) {
-            is AuthMessage.NicknameField -> copy(
+    internal class SignUpReducer: Reducer<SignUpStore.UISignUpState, SignUpMessage> {
+        override fun SignUpStore.UISignUpState.reduce(
+            msg: SignUpMessage
+        ): SignUpStore.UISignUpState = when (msg) {
+            is SignUpMessage.NicknameField -> copy(
                 nickname = msg.field
             )
-            is AuthMessage.PhoneNumberField -> copy(
+            is SignUpMessage.PhoneNumberField -> copy(
                 phoneNumberState = msg.field
             )
-            is AuthMessage.PasswordField -> copy(
+            is SignUpMessage.PasswordField -> copy(
                 passwordState = msg.field
             )
-            is AuthMessage.OnError -> copy(
+            is SignUpMessage.OnError -> copy(
                 errorMessage = msg.s
             )
-            is AuthMessage.Success -> copy(
+            is SignUpMessage.Success -> copy(
                 isSuccess = true
             )
-            is AuthMessage.ResetError -> copy(
+            is SignUpMessage.ResetError -> copy(
                 errorMessage = null
             )
         }

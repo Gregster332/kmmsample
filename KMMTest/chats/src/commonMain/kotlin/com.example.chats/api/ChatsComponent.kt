@@ -33,8 +33,7 @@ import org.koin.dsl.module
 class ChatsComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
-    chatsApi: ChatsApi,
-    private val didTapOnChatScreen: () -> Unit
+    chatsApi: ChatsApi
 ): Chats, ComponentContext by componentContext {
     private val store = instanceKeeper.getStore {
         ChatsStoreProvider(
@@ -66,11 +65,8 @@ class ChatsComponent(
         )
     }
 
-    override fun didTapOnChat() {
-        didTapOnChatScreen()
-    }
-
-    private fun tryLoadChats() {
+    override fun tryLoadChats() {
+        println("dsdsdsdsdsds")
         store.accept(ChatsStore.ChatsIntent.TryLoadChats)
     }
 

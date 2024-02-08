@@ -6,6 +6,6 @@ import com.example.mykmmtest.MainDatabase
 
 actual class DriverFactory {
     actual fun createDriver(): SqlDriver {
-        return NativeSqliteDriver(MainDatabase.Schema, "MainDatabse.db")
+        return NativeSqliteDriver(MainDatabase.Schema, "MainDatabase.db")
     }
 }

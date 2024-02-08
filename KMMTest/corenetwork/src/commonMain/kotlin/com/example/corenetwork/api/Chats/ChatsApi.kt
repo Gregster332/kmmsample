@@ -4,7 +4,8 @@ import com.example.corenetwork.model.Chats.Chat
 import com.example.corenetwork.model.Chats.ChatUnit
 
 interface ChatsApi {
-    //suspend fun getAllUserChats(): List<ChatUnit>
+    suspend fun createNewChat(entity: CreateFaceToFaceChatRequest): ChatUnit?
+    suspend fun getAllChats(): List<ChatUnit>
 }
 
 interface WebSocketService {

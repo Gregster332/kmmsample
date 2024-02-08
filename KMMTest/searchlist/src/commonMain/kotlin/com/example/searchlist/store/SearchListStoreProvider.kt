@@ -5,8 +5,12 @@ import com.arkivanov.mvikotlin.core.store.SimpleBootstrapper
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.example.core.MVI.BaseExecutor
+import com.example.corenetwork.api.Auth.DBUser
 import com.example.corenetwork.api.Auth.LocalCache
 import com.example.corenetwork.api.Auth.UserBaseInfo
+import com.example.corenetwork.api.Auth.mapToRequestModel
+import com.example.corenetwork.api.Chats.ChatsApi
+import com.example.corenetwork.api.Chats.CreateFaceToFaceChatRequest
 import com.example.corenetwork.api.Users.UsersApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,24 +23,32 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
 internal object SearchListStoreProvider {
-    fun create(storeFactory: StoreFactory, usersApi: UsersApi, db: LocalCache): SearchListStore =
+    fun create(
+        storeFactory: StoreFactory,
+        usersApi: UsersApi,
+        chatsApi: ChatsApi,
+        db: LocalCache,
+        newChatCreatedCallback: () -> Unit
+    ): SearchListStore =
         object : SearchListStore, Store<SearchListStore.Intent, SearchListStore.SearchListUIState, Nothing> by storeFactory.create(
             name = SearchListStore::class.simpleName,
             initialState = SearchListStore.SearchListUIState(),
             bootstrapper = SimpleBootstrapper(SearchListStore.Action.LoadUsers),
             executorFactory = {
-                ExecutorImpl(usersApi, db)
+                ExecutorImpl(usersApi, chatsApi, db, newChatCreatedCallback)
             },
             reducer = ReducerImpl
         ) {}
 
     private sealed class Message {
-        data class RefreshUsersData(val users: List<UserBaseInfo>): Message()
+        data class RefreshUsersData(val users: List<DBUser>): Message()
     }
 
     private class ExecutorImpl(
         private val usersApi: UsersApi,
-        private val db: LocalCache
+        private val chatsApi: ChatsApi,
+        private val db: LocalCache,
+        private val newChatCreatedCallback: () -> Unit
     ): BaseExecutor<SearchListStore.Intent, SearchListStore.Action, SearchListStore.SearchListUIState, Message, Nothing>() {
 
         private var debounceJob: Job? = null
@@ -61,7 +73,7 @@ internal object SearchListStoreProvider {
             debounceJob = scope.launch {
                 delay(1500L)
                 if (debounceJob?.isCancelled == false) {
-                    val users = usersApi.searchUsersBy(text)
+                    val users = usersApi.searchUsersBy(text).map { it.mapToRequestModel(false) }
                     dispatch(Message.RefreshUsersData(users))
                 }
             }
@@ -72,9 +84,25 @@ internal object SearchListStoreProvider {
             dispatch(Message.RefreshUsersData(usersDB))
         }
 
-        private suspend fun cacheNewUsers(user: UserBaseInfo) = withContext(Dispatchers.IO) {
+        private suspend fun cacheNewUsers(user: DBUser): Unit = withContext(Dispatchers.IO) {
             if (db.getUserBy(user.id) == null) {
                 db.saveNewUser(user)
+            }
+
+            when(val current = db.getCurrentUser()) {
+                is DBUser -> {
+                    val entity = CreateFaceToFaceChatRequest(
+                        user.nickname,
+                        current.id,
+                        user.id
+                    )
+                    chatsApi.createNewChat(entity)?.let {
+                        withContext(Dispatchers.Main) {
+                            newChatCreatedCallback()
+                        }
+                    }
+                }
+                else -> {}
             }
         }
     }
