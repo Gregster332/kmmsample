@@ -18,7 +18,7 @@ struct ChatCell: View {
             HStack(alignment: .top) {
                 HStack(spacing: 12) {
                     Circle()
-                        .frame(height: 66)
+                        .frame(height: 55)
                         .padding(4)
                     
                     VStack(alignment: .leading, spacing: 2) {
@@ -41,7 +41,7 @@ struct ChatCell: View {
                     .font(.system(size: 16, weight: .regular))
                     .foregroundStyle(.secondary)
             }
-            .padding(2)
+            .padding(3)
             .frame(maxWidth: .infinity)
             .padding(.horizontal, 8)
         }

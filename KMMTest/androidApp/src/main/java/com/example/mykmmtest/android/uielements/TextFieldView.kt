@@ -27,24 +27,25 @@ fun TextFieldView(
     isValid: Boolean,
     title: String,
     hint: String? = null,
-    onValueChange: (String) -> Unit
+    onValueChange: (String) -> Unit,
 ) {
+    val tfColor =
+        if (isValid) {
+            Color.Green.copy(0.9f)
+        } else if (isError) {
+            Color.Red.copy(0.9f)
+        } else {
+            Color.Gray.copy(0.9f)
+        }
 
-    val tfColor = if (isValid) {
-        Color.Green.copy(0.9f)
-    } else if (isError) {
-        Color.Red.copy(0.9f)
-    } else {
-        Color.Gray.copy(0.9f)
-    }
-
-    val backgroundColor = if (isError) {
-        Color.Red.copy(0.1f)
-    } else if (isValid) {
-        Color.Green.copy(0.1f)
-    } else {
-        Color.Gray.copy(0.1f)
-    }
+    val backgroundColor =
+        if (isError) {
+            Color.Red.copy(0.1f)
+        } else if (isValid) {
+            Color.Green.copy(0.1f)
+        } else {
+            Color.Gray.copy(0.1f)
+        }
 
     Column(
         Modifier
@@ -52,36 +53,39 @@ fun TextFieldView(
             .padding(bottom = 4.dp)
             .background(
                 backgroundColor,
-                RoundedCornerShape(CornerSize(8.dp))
+                RoundedCornerShape(CornerSize(8.dp)),
             )
             .padding(3.dp)
-            .fillMaxWidth()
+            .fillMaxWidth(),
     ) {
         Text(
             text = title,
             color = Color.Black,
             fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier
+            modifier =
+            Modifier
                 .padding(horizontal = 4.dp)
-                .padding(bottom = 4.dp)
+                .padding(bottom = 4.dp),
         )
 
         OutlinedTextField(
             value = text,
             shape = RoundedCornerShape(8.dp),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
+            colors =
+            TextFieldDefaults.outlinedTextFieldColors(
                 focusedBorderColor = tfColor,
                 unfocusedBorderColor = tfColor,
-                backgroundColor = Color.Transparent
+                backgroundColor = Color.Transparent,
             ),
             onValueChange = {
                 onValueChange(it)
             },
-            modifier = Modifier
+            modifier =
+            Modifier
                 .defaultMinSize(minHeight = 26.dp)
                 .padding(horizontal = 4.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
         )
 
         if (hint is String) {
@@ -90,8 +94,9 @@ fun TextFieldView(
                 color = Color.Gray,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
+                modifier =
+                Modifier
+                    .padding(horizontal = 8.dp),
             )
         }
     }
@@ -105,6 +110,6 @@ fun TextFieldViewPreview() {
         isError = false,
         isValid = true,
         title = "",
-        onValueChange = {}
+        onValueChange = {},
     )
 }

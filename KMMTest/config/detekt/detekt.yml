@@ -1,0 +1,44 @@
+formatting:
+  NoUnusedImports:
+    active: true
+    autoCorrect: true
+
+comments:
+  active: false
+
+naming:
+  active: false
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+    active: true
+
+style:
+  active: false
+  WildcardImport:
+    active: true
+  CascadingCallWrapping:
+    active: true
+    includeElvis: true
+  ClassOrdering:
+    active: true
+  CollapsibleIfStatements:
+    active: true
+  DataClassShouldBeImmutable:
+    active: true
+  DestructuringDeclarationWithTooManyEntries:
+    maxDestructuringEntries: 4
+    active: true
+  EqualsNullCall:
+    active: true
+  MaxLineLength:
+    active: true
+  UnnecessaryBracesAroundTrailingLambda:
+    active: true
+  UnnecessaryParentheses:
+    active: true
+  UseLet:
+    active: true
+
+potential-bugs:
+  LateinitUsage:
+    active: false

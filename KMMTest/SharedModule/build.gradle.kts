@@ -1,16 +1,17 @@
+import io.gitlab.arturbosch.detekt.Detekt
+import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
+
 plugins {
     kotlin("multiplatform")
     kotlin("native.cocoapods")
     id("com.android.library")
     kotlin("plugin.serialization") version "1.9.10"
-    id("kotlin-parcelize")
     id("dev.icerock.mobile.multiplatform-resources")
     id("app.cash.sqldelight")
+    id("io.gitlab.arturbosch.detekt")
 }
 
 kotlin {
-   //targetHierarchy.default()
-
     androidTarget {
         compilations.all {
             kotlinOptions {
@@ -34,7 +35,7 @@ kotlin {
             export(Dependencies.Decompose.decompose)
             export("dev.icerock.moko:resources:0.23.0")
             export("dev.icerock.moko:graphics:0.9.0")
-            export("com.arkivanov.essenty:lifecycle:1.2.0")
+            export("com.arkivanov.essenty:lifecycle:2.0.0-alpha02")
             export(project(":chats"))
             export(project(":core"))
             export(project(":corenetwork"))
@@ -42,7 +43,6 @@ kotlin {
             export(project(":searchlist"))
             export(project(":authentication"))
         }
-        //extraSpecAttributes["resources"] = "['src/commonMain/resources/**']"
     }
     
     sourceSets {
@@ -62,7 +62,7 @@ kotlin {
                 implementation(Dependencies.Koin.core)
                 api(Dependencies.Decompose.decompose)
                 implementation("app.cash.sqldelight:coroutines-extensions:2.0.1")
-                api("com.arkivanov.essenty:lifecycle:1.2.0")
+                api("com.arkivanov.essenty:lifecycle:2.0.0-alpha02")
                 api("dev.icerock.moko:resources:0.23.0")
                 implementation(project(":chats"))
                 implementation(project(":apptheme"))
@@ -85,7 +85,6 @@ kotlin {
                 implementation(Dependencies.Kotlin.Ktor.okHttp)
                 implementation(Dependencies.Kotlin.SQL.android)
                 implementation(Dependencies.Koin.android)
-                implementation("app.cash.sqldelight:android-driver:2.0.1")
             }
         }
 
@@ -139,4 +138,41 @@ sqldelight {
 //            migrationOutputDirectory.set(file("src/commonMain/sqldelight/com/example/mykmmtest"))
         }
     }
+}
+
+detekt {
+    source.from(files(rootProject.rootDir))
+    parallel = true
+    autoCorrect = true
+}
+
+tasks {
+    fun SourceTask.config() {
+        include("**/*.kt")
+        exclude("**/*.kts")
+        exclude("**/resources/**")
+        exclude("**/generated/**")
+        exclude("**/sqldelight/**")
+        exclude("**/build/**")
+    }
+
+    withType<DetektCreateBaselineTask>().configureEach {
+        config()
+    }
+
+    withType<Detekt>().configureEach {
+        config()
+
+        reports {
+            html.required.set(true)
+            html.outputLocation.set(file("build/generated/detekt.html"))
+            xml.required.set(false)
+            sarif.required.set(false)
+            md.required.set(false)
+        }
+    }
+}
+
+dependencies {
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.3")
 }

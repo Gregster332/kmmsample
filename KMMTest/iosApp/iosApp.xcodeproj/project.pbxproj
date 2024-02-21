@@ -12,10 +12,13 @@
 		2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2152FB032600AC8F00CF470E /* iOSApp.swift */; };
 		367D009F7DCE54E363556B08 /* Pods_iosApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C19498AABCAD8505D268F55 /* Pods_iosApp.framework */; };
 		7555FF83242A565900829871 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* MainView.swift */; };
-		ED04C0762AC096DE00B6DF0D /* Publishers+Flow.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED04C0752AC096DE00B6DF0D /* Publishers+Flow.swift */; };
+		ED04C0762AC096DE00B6DF0D /* ObservableStateFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED04C0752AC096DE00B6DF0D /* ObservableStateFlow.swift */; };
 		ED04C07A2AD43C6700B6DF0D /* DropDownTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED04C0792AD43C6700B6DF0D /* DropDownTextField.swift */; };
 		ED04C0B82B09E11300B6DF0D /* CardInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED04C0B72B09E11200B6DF0D /* CardInfoView.swift */; };
 		ED04C0E12B25DA6A00B6DF0D /* SomeNew.c in Sources */ = {isa = PBXBuildFile; fileRef = ED04C0E02B25DA6A00B6DF0D /* SomeNew.c */; };
+		ED1D99E12B777F6000CC8A05 /* DeviceShakeModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED1D99E02B777F6000CC8A05 /* DeviceShakeModifier.swift */; };
+		ED1D99E42B777FFF00CC8A05 /* DebugMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED1D99E32B777FFF00CC8A05 /* DebugMenuView.swift */; };
+		ED1D99E62B7FE0C100CC8A05 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED1D99E52B7FE0C100CC8A05 /* MainTabView.swift */; };
 		ED75F3852B371F8C00851869 /* MessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED75F3842B371F8C00851869 /* MessageView.swift */; };
 		ED75F3882B384D1100851869 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED75F3872B384D1100851869 /* AuthView.swift */; };
 		ED92C3D12B388B3000B6E962 /* Flowable.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED92C3D02B388B3000B6E962 /* Flowable.swift */; };
@@ -53,7 +56,7 @@
 		7555FF7B242A565900829871 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7555FF82242A565900829871 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		7555FF8C242A565B00829871 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		ED04C0752AC096DE00B6DF0D /* Publishers+Flow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Publishers+Flow.swift"; sourceTree = "<group>"; };
+		ED04C0752AC096DE00B6DF0D /* ObservableStateFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservableStateFlow.swift; sourceTree = "<group>"; };
 		ED04C0792AD43C6700B6DF0D /* DropDownTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropDownTextField.swift; sourceTree = "<group>"; };
 		ED04C0982AE41E2100B6DF0D /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		ED04C09A2AE41E2100B6DF0D /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -61,6 +64,9 @@
 		ED04C0DE2B25DA6A00B6DF0D /* iosApp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "iosApp-Bridging-Header.h"; sourceTree = "<group>"; };
 		ED04C0DF2B25DA6A00B6DF0D /* SomeNew.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SomeNew.h; sourceTree = "<group>"; };
 		ED04C0E02B25DA6A00B6DF0D /* SomeNew.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SomeNew.c; sourceTree = "<group>"; };
+		ED1D99E02B777F6000CC8A05 /* DeviceShakeModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceShakeModifier.swift; sourceTree = "<group>"; };
+		ED1D99E32B777FFF00CC8A05 /* DebugMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugMenuView.swift; sourceTree = "<group>"; };
+		ED1D99E52B7FE0C100CC8A05 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		ED75F3842B371F8C00851869 /* MessageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageView.swift; sourceTree = "<group>"; };
 		ED75F3872B384D1100851869 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		ED92C3D02B388B3000B6E962 /* Flowable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Flowable.swift; sourceTree = "<group>"; };
@@ -158,10 +164,11 @@
 		ED04C0742AC096C700B6DF0D /* Utils */ = {
 			isa = PBXGroup;
 			children = (
-				ED04C0752AC096DE00B6DF0D /* Publishers+Flow.swift */,
+				ED04C0752AC096DE00B6DF0D /* ObservableStateFlow.swift */,
 				ED92C4222B4D906400B6E962 /* ComponentsHandler.swift */,
 				ED92C4242B4F243800B6E962 /* ChildStack.swift */,
 				ED92C42A2B525CE200B6E962 /* ObservableValue.swift */,
+				ED1D99E02B777F6000CC8A05 /* DeviceShakeModifier.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -182,6 +189,14 @@
 				ED04C0B72B09E11200B6DF0D /* CardInfoView.swift */,
 			);
 			path = Tarsh;
+			sourceTree = "<group>";
+		};
+		ED1D99E22B777FF000CC8A05 /* DebugMenu */ = {
+			isa = PBXGroup;
+			children = (
+				ED1D99E32B777FFF00CC8A05 /* DebugMenuView.swift */,
+			);
+			path = DebugMenu;
 			sourceTree = "<group>";
 		};
 		ED75F3862B384D0600851869 /* Auth */ = {
@@ -205,12 +220,14 @@
 		ED92C3D22B388B8D00B6E962 /* UserStories */ = {
 			isa = PBXGroup;
 			children = (
+				ED1D99E22B777FF000CC8A05 /* DebugMenu */,
 				EDFF57002B5C94CA0060151F /* SearchList */,
 				ED92C42E2B525DA800B6E962 /* AppTheme */,
 				ED92C4272B519B2400B6E962 /* Chats */,
 				ED92C4182B480E5C00B6E962 /* Splash */,
 				ED04C07B2AD4AEB200B6DF0D /* Main */,
 				ED75F3862B384D0600851869 /* Auth */,
+				ED1D99E52B7FE0C100CC8A05 /* MainTabView.swift */,
 			);
 			path = UserStories;
 			sourceTree = "<group>";
@@ -389,16 +406,19 @@
 				ED92C42B2B525CE200B6E962 /* ObservableValue.swift in Sources */,
 				ED92C42D2B525DA000B6E962 /* AppThemeView.swift in Sources */,
 				ED92C3D12B388B3000B6E962 /* Flowable.swift in Sources */,
+				ED1D99E42B777FFF00CC8A05 /* DebugMenuView.swift in Sources */,
 				ED92C4292B519B3100B6E962 /* ChatsView.swift in Sources */,
 				EDFF57022B5C94E10060151F /* SearchListView.swift in Sources */,
-				ED04C0762AC096DE00B6DF0D /* Publishers+Flow.swift in Sources */,
+				ED04C0762AC096DE00B6DF0D /* ObservableStateFlow.swift in Sources */,
 				ED92C4252B4F243800B6E962 /* ChildStack.swift in Sources */,
 				ED75F3852B371F8C00851869 /* MessageView.swift in Sources */,
+				ED1D99E62B7FE0C100CC8A05 /* MainTabView.swift in Sources */,
 				ED92C41A2B480E7300B6E962 /* SplashView.swift in Sources */,
 				ED92C4172B47E77600B6E962 /* ChatCell.swift in Sources */,
 				2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */,
 				7555FF83242A565900829871 /* MainView.swift in Sources */,
 				ED92C41F2B4940DE00B6E962 /* AppTheme+Extension.swift in Sources */,
+				ED1D99E12B777F6000CC8A05 /* DeviceShakeModifier.swift in Sources */,
 				ED75F3882B384D1100851869 /* AuthView.swift in Sources */,
 				ED04C07A2AD43C6700B6DF0D /* DropDownTextField.swift in Sources */,
 				ED04C0B82B09E11300B6DF0D /* CardInfoView.swift in Sources */,

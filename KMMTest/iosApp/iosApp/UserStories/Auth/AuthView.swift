@@ -11,27 +11,6 @@ import SwiftUI
 import SharedModule
 import UIElements
 
-struct ViewBackgroud: ViewModifier {
-    
-    let color: UIColor
-    
-    func body(content: Content) -> some View {
-        ZStack {
-            Color(uiColor: color)
-                .ignoresSafeArea()
-            
-            content
-        }
-    }
-}
-
-extension View {
-    @ViewBuilder
-    func viewBackground(color: UIColor) -> some View {
-        modifier(ViewBackgroud(color: color))
-    }
-}
-
 struct AuthView: View {
     
     enum AuthTextFieldState {
@@ -153,7 +132,7 @@ struct AuthView: View {
                 !models.value.passwordState.isValid
             )
             .ignoresSafeArea(.keyboard, edges: .bottom)
-            
+
         }
         .padding(.horizontal, 16)
         .viewBackground(
@@ -179,16 +158,6 @@ struct AuthView: View {
             ToolbarItem(placement: .principal) {
                 Text(MR.strings().auth_screen_title.desc().localized())
                     .font(.title3.weight(.semibold))
-            }
-            
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    component.openAppTheme()
-                } label: {
-                    Image(systemName: "lightbulb.fill")
-                        .resizable()
-                        .tint(.primary)
-                }
             }
         }
         .navigationBarBackButtonHidden()

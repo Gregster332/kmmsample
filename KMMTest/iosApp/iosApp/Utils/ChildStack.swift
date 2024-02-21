@@ -15,6 +15,7 @@ struct StackView<T: AnyObject, Content: View>: View {
     var stackValue: ObservableValue<ChildStack<AnyObject, T>>
     
     var getTitle: (T) -> String
+    var tintColor: SwiftUI.Color
     var onBack: () -> Void
     
     @ViewBuilder
@@ -31,10 +32,18 @@ struct StackView<T: AnyObject, Content: View>: View {
                 set: { _ in onBack() }))
         {
             childContent(stack.first!.instance!)
-            //Color.clear
                 .navigationDestination(for: Child<AnyObject, T>.self) {
                     childContent($0.instance!)
                 }
+        }
+        .tint(tintColor)
+        .onAppear {
+            let appearance = UINavigationBarAppearance()
+            appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialLight)
+            appearance.backgroundColor = MR.colors().backgroundColor.getUIColor()
+            appearance.shadowColor = .clear
+            UINavigationBar.appearance().standardAppearance = appearance
+            UINavigationBar.appearance().scrollEdgeAppearance = appearance
         }
     }
 }

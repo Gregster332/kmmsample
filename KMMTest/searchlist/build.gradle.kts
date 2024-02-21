@@ -31,11 +31,6 @@ kotlin {
                 implementation(Dependencies.MVI.coroutines)
             }
         }
-//        val commonTest by getting {
-//            dependencies {
-//                implementation(kotlin("test"))
-//            }
-//        }
         val androidMain by getting
         val iosX64Main by getting
         val iosArm64Main by getting

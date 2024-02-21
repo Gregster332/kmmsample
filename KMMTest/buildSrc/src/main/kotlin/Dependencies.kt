@@ -27,7 +27,7 @@ object Dependencies {
     }
 
     object MVI {
-        private const val version = "3.0.2"
+        private const val version = "4.0.0-alpha01"
         const val core = "com.arkivanov.mvikotlin:mvikotlin:$version"
         const val main = "com.arkivanov.mvikotlin:mvikotlin-main:$version"
         const val logging = "com.arkivanov.mvikotlin:mvikotlin-logging:$version"
@@ -40,21 +40,14 @@ object Dependencies {
         const val android = "io.insert-koin:koin-android:$version"
     }
 
-    object KmmViewModel {
-        private const val version = "0.16.1"
-        const val core = "dev.icerock.moko:mvvm-core:$version"
-        const val cFlow = "dev.icerock.moko:mvvm-flow:$version"
-    }
-
     object Settings {
         private const val version = "1.1.1"
         const val settings = "com.russhwolf:multiplatform-settings-no-arg:$version"
     }
 
     object Decompose {
-        private const val version = "2.1.4"
+        private const val version = "3.0.0-alpha02"
         const val decompose = "com.arkivanov.decompose:decompose:$version"
-        const val jetpack = "com.arkivanov.decompose:extensions-compose-jetpack:$version"
-        //const val jetpack = "com.arkivanov.decompose:extensions-compose-jetpack:$version"
+        const val jetpack = "com.arkivanov.decompose:extensions-compose:$version"
     }
 }

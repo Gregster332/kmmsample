@@ -1,7 +1,7 @@
 package com.example.searchlist
 
 import com.arkivanov.decompose.value.Value
-import com.example.corenetwork.api.Auth.DBUser
+import com.example.corenetwork.api.auth.DBUser
 import com.example.searchlist.store.SearchListStore
 
 interface SearchList {

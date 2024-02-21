@@ -15,33 +15,25 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.rememberNavController
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.defaultComponentContext
-import com.arkivanov.decompose.extensions.compose.jetpack.stack.Children
-import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.isFront
-import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.scale
-import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.slide
-import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.stackAnimation
-import com.arkivanov.decompose.extensions.compose.jetpack.subscribeAsState
-import com.example.chats.api.ChatsComponent
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.example.authentication.Auth.SignUpComponent
 import com.example.mykmmtest.MR
-import com.example.mykmmtest.Storiess.Auth.AuthComponent
-import com.example.mykmmtest.Storiess.Splash.Splash
-import com.example.mykmmtest.Storiess.Splash.SplashComponent
+import com.example.mykmmtest.android.screens.DialogContent
+import com.example.mykmmtest.stories.mainPage.MainPagesComponent
+import com.example.mykmmtest.stories.splash.Splash
+import com.example.mykmmtest.stories.splash.SplashComponent
 import com.example.mykmmtest.android.uielements.TextFieldView
+import com.example.mykmmtest.stories.tab.TabComponent
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,51 +47,53 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun makeSplash(componentContext: ComponentContext): SplashComponent =
-        SplashComponent(
+    private fun makeSplash(
+        componentContext: ComponentContext
+    ): SplashComponent = SplashComponent(
             componentContext
-        )
+    )
 }
 
 @Composable
-fun SplashViewContent(component: SplashComponent) {
-    val stack by component.childStack.subscribeAsState()
+fun SplashViewContent(
+    component: SplashComponent
+) {
+    val stack by component.child.subscribeAsState()
+    val debugMenu by component.sheet.subscribeAsState()
 
     NavBar {
-        Children(
-            stack = stack,
-            animation = stackAnimation { from, to, dir ->
-                if (dir.isFront) {
-                    slide()
-                } else {
-                    slide()
+       when(val tab = stack.tabChild?.instance) {
+           is TabComponent -> { Text(text = "") }
+       }
+
+        when(val auth = stack.authChild?.instance) {
+            is SignUpComponent -> { AuthView(component = auth) }
+        }
+
+        debugMenu.child?.instance?.also {
+            when(it) {
+                is Splash.SheetChild.DebugMenu -> {
+                    DialogContent(debugMenu = it.component)
                 }
-            }
-        ) {
-            when (val child = it.instance) {
-                is Splash.Child.Auth -> AuthView(child.component)
-                is Splash.Child.Chats -> ChatsView(child.component)
-                else -> Text("")
             }
         }
     }
 }
 
 @Composable
-fun AuthView(
-    component: AuthComponent
-) {
+fun AuthView(component: SignUpComponent) {
     val state by component.state.subscribeAsState()
 
     Surface(
-        modifier = Modifier
+        modifier =
+        Modifier
             .fillMaxSize(),
-        color = MaterialTheme.colors.background
+        color = MaterialTheme.colors.background,
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             TextFieldView(
                 text = state.nickname.text,
@@ -108,7 +102,8 @@ fun AuthView(
                 title = MR.strings.nickname_field_title.getString(LocalContext.current),
                 onValueChange = {
                     component.validateNickname(it)
-                })
+                },
+            )
 
             TextFieldView(
                 text = state.phoneNumberState.text,
@@ -117,7 +112,8 @@ fun AuthView(
                 title = MR.strings.phone_field_title.getString(LocalContext.current),
                 onValueChange = {
                     component.validatePhone(it)
-                })
+                },
+            )
 
             TextFieldView(
                 text = state.passwordState.text,
@@ -126,11 +122,12 @@ fun AuthView(
                 title = MR.strings.password_field_title.getString(LocalContext.current),
                 onValueChange = {
                     component.validatePassword(it)
-                })
+                },
+            )
 
             Button(
                 onClick = { component.authWithPassword() },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text("Sign in")
             }
@@ -139,13 +136,14 @@ fun AuthView(
 }
 
 @Composable
-fun ChatsView(component: ChatsComponent) {
-    val state by component.chats.subscribeAsState()
+fun ChatsView(component: MainPagesComponent) {
+    val state by component.children.subscribeAsState()
 
     Surface(
-        modifier = Modifier
+        modifier =
+        Modifier
             .fillMaxSize(),
-        color = MaterialTheme.colors.background
+        color = MaterialTheme.colors.background,
     ) {
         Text("Chats")
     }
@@ -156,14 +154,15 @@ fun NavBar(content: @Composable (PaddingValues) -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                backgroundColor = colorResource(
-                    id = MR.colors.backgroundColor.resourceId
+                backgroundColor =
+                colorResource(
+                    id = MR.colors.backgroundColor.resourceId,
                 ),
                 title = {
                     Text("Authorization")
-                }
+                },
             )
-        }
+        },
     ) { paddings ->
         content(paddings)
     }
@@ -173,6 +172,5 @@ fun NavBar(content: @Composable (PaddingValues) -> Unit) {
 @Composable
 fun DefaultPreview() {
     MyApplicationTheme {
-
     }
 }

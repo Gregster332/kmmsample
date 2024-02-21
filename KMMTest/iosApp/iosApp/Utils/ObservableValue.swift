@@ -17,7 +17,8 @@ public class ObservableValue<T : AnyObject> : ObservableObject {
     
     init(_ value: SharedModule.Value<T>) {
         self.value = value.value
-        self.cancellation = value.observe(observer: { [weak self] value in
+        self.cancellation = value.subscribe(observer_: { [weak self] value in
+            //print("CVADADADDAADADA")
             self?.value = value
         })
     }

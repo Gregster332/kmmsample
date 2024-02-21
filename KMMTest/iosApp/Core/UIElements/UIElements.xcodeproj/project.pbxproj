@@ -7,19 +7,23 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		ED1D99F12B81320500CC8A05 /* ViewBackgroud.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED1D99F02B81320500CC8A05 /* ViewBackgroud.swift */; };
+		ED1D99F42B81323800CC8A05 /* View+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED1D99F32B81323800CC8A05 /* View+Extensions.swift */; };
+		ED1D99F62B82452000CC8A05 /* TapAnimatableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED1D99F52B82452000CC8A05 /* TapAnimatableView.swift */; };
 		ED92C3FC2B38ABA800B6E962 /* UIElements.h in Headers */ = {isa = PBXBuildFile; fileRef = ED92C3FB2B38ABA800B6E962 /* UIElements.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ED92C40D2B3B8A4400B6E962 /* AnimateGradientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED92C40C2B3B8A4400B6E962 /* AnimateGradientView.swift */; };
 		ED92C4132B3F03BA00B6E962 /* CircleHint.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED92C4122B3F03BA00B6E962 /* CircleHint.swift */; };
-		ED92C4152B3F03FB00B6E962 /* AppThemSwitcherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED92C4142B3F03FB00B6E962 /* AppThemSwitcherView.swift */; };
 		ED92C4212B49ABC400B6E962 /* StateableTextFiledView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED92C4202B49ABC400B6E962 /* StateableTextFiledView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		ED1D99F02B81320500CC8A05 /* ViewBackgroud.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewBackgroud.swift; sourceTree = "<group>"; };
+		ED1D99F32B81323800CC8A05 /* View+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extensions.swift"; sourceTree = "<group>"; };
+		ED1D99F52B82452000CC8A05 /* TapAnimatableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TapAnimatableView.swift; sourceTree = "<group>"; };
 		ED92C3F82B38ABA800B6E962 /* UIElements.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = UIElements.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED92C3FB2B38ABA800B6E962 /* UIElements.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UIElements.h; sourceTree = "<group>"; };
 		ED92C40C2B3B8A4400B6E962 /* AnimateGradientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimateGradientView.swift; sourceTree = "<group>"; };
 		ED92C4122B3F03BA00B6E962 /* CircleHint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircleHint.swift; sourceTree = "<group>"; };
-		ED92C4142B3F03FB00B6E962 /* AppThemSwitcherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppThemSwitcherView.swift; sourceTree = "<group>"; };
 		ED92C4202B49ABC400B6E962 /* StateableTextFiledView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = StateableTextFiledView.swift; path = ../../../../iosApp/UserStories/Auth/StateableTextFiledView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -34,6 +38,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		ED1D99EF2B8131FC00CC8A05 /* Modifiers */ = {
+			isa = PBXGroup;
+			children = (
+				ED1D99F02B81320500CC8A05 /* ViewBackgroud.swift */,
+			);
+			path = Modifiers;
+			sourceTree = "<group>";
+		};
+		ED1D99F22B81321700CC8A05 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				ED1D99F32B81323800CC8A05 /* View+Extensions.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
 		ED92C3EE2B38ABA800B6E962 = {
 			isa = PBXGroup;
 			children = (
@@ -54,6 +74,8 @@
 		ED92C3FA2B38ABA800B6E962 /* UIElements */ = {
 			isa = PBXGroup;
 			children = (
+				ED1D99F22B81321700CC8A05 /* Extensions */,
+				ED1D99EF2B8131FC00CC8A05 /* Modifiers */,
 				ED92C4022B38ABB000B6E962 /* Views */,
 				ED92C3FB2B38ABA800B6E962 /* UIElements.h */,
 			);
@@ -65,8 +87,8 @@
 			children = (
 				ED92C40C2B3B8A4400B6E962 /* AnimateGradientView.swift */,
 				ED92C4122B3F03BA00B6E962 /* CircleHint.swift */,
-				ED92C4142B3F03FB00B6E962 /* AppThemSwitcherView.swift */,
 				ED92C4202B49ABC400B6E962 /* StateableTextFiledView.swift */,
+				ED1D99F52B82452000CC8A05 /* TapAnimatableView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -159,9 +181,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				ED92C4212B49ABC400B6E962 /* StateableTextFiledView.swift in Sources */,
+				ED1D99F12B81320500CC8A05 /* ViewBackgroud.swift in Sources */,
 				ED92C40D2B3B8A4400B6E962 /* AnimateGradientView.swift in Sources */,
 				ED92C4132B3F03BA00B6E962 /* CircleHint.swift in Sources */,
-				ED92C4152B3F03FB00B6E962 /* AppThemSwitcherView.swift in Sources */,
+				ED1D99F62B82452000CC8A05 /* TapAnimatableView.swift in Sources */,
+				ED1D99F42B81323800CC8A05 /* View+Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

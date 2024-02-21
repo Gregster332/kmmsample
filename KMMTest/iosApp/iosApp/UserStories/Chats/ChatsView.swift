@@ -16,34 +16,33 @@ struct ChatsView: View {
     @ObservedObject
     private var models: ObservableValue<ChatsStoreChatsUiState>
     
+    
     init(
         component: Chats
     ) {
         self.component = component
-        //self.onSearhBarActivate = onSearhBarActivate
         self.models = ObservableValue(component.chats)
     }
     
     var body: some View {
         VStack {
-            ScrollView(.vertical) {
-                LazyVStack(spacing: 0) {
-                    ForEach(models.value.chats, id: \.self) { chat in
-                        ChatCell(name: chat.name)
+            if let error = models.value.errorMessage {
+                Text(error)
+            } else {
+                ScrollView(.vertical) {
+                    LazyVStack(spacing: 0) {
+                        ForEach(models.value.chats, id: \.self) { chat in
+                            ChatCell(name: chat.name)
+                                .onTapGesture {
+                                    component.openChat(chatUnit: chat)
+                                }
+                        }
                     }
                 }
             }
-            .viewBackground(
-                color: MR.colors.shared.backgroundColor.getUIColor()
-            )
-            .onAppear {
-                //focus = false
-                //component.tryLoadChats()
-            }
         }
+        .viewBackground(
+            color: MR.colors.shared.backgroundColor.getUIColor()
+        )
     }
 }
-
-//#Preview {
-//    ChatsView()
-//}

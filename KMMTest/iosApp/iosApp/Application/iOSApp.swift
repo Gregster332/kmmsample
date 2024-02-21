@@ -8,8 +8,8 @@ struct MainApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
     init() {
-        let kk = Multiplatform_settingsKeychainSettings(service: "default_serv")
-        IosMainDIKt.doInitKoinIOS(settings: kk)
+        let deviceSensorApi = DeviceSensorApiImpl()
+        IosMainDIKt.doInitKoinIOS(deviceSensorApi: deviceSensorApi)
     }
     
     var body: some Scene {
@@ -26,16 +26,40 @@ class AppDelegate: NSObject, UIApplicationDelegate {
   }
 }
 
+extension UIDevice {
+    static let deviceShakeNotification = Notification.Name(rawValue: "deviceDidShakeNotification")
+}
 
-extension AppThemSwitcherView.AppTheme {
-    var scheme: ColorScheme? {
-        switch self {
-        case .systemDefault:
-            return nil
-        case .dark:
-            return .dark
-        case .light:
-            return .light
-        }
+extension UIWindow {
+    override open func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+        guard case .motionShake = motion else { return }
+        NotificationCenter.default.post(
+            name: UIDevice.deviceShakeNotification,
+            object: nil
+        )
+    }
+}
+
+final class DeviceSensorApiImpl: DeviceSensorApi {
+    
+    private var listener: () -> Void = {}
+    
+    func setSensorListener(listener: @escaping () -> Void) {
+        self.listener = listener
+    }
+    
+    func start() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(deviceDidMotion),
+            name: Notification.Name(rawValue: "deviceDidShakeNotification"),
+            object: nil
+        )
+    }
+    
+    func stop() {}
+    
+    @objc private func deviceDidMotion() {
+        listener()
     }
 }

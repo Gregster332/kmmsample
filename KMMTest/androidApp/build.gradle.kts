@@ -20,7 +20,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.3"
+        kotlinCompilerExtensionVersion = "1.5.6"
     }
     packaging {
         resources {
@@ -42,8 +42,13 @@ android {
 }
 
 dependencies {
-    implementation(project(":SharedModule"))
+//    implementation(project(":core"))
+    implementation(project(":corenetwork"))
     implementation(project(":chats"))
+    implementation(project(":authentication"))
+    implementation(project(":apptheme"))
+    implementation(project(":searchlist"))
+    implementation(project(":SharedModule"))
     implementation("androidx.compose.ui:ui:1.5.4")
     implementation("androidx.compose.ui:ui-tooling:1.5.4")
     implementation("androidx.compose.ui:ui-tooling-preview:1.5.4")

@@ -9,8 +9,9 @@ import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.bind
 import com.arkivanov.mvikotlin.extensions.coroutines.states
-import com.example.corenetwork.api.Auth.AuthApi
-import com.example.corenetwork.api.SecurePersistant.SettingsPersistent
+import com.example.core.Services.SettingsPersistent
+import com.example.corenetwork.api.auth.AuthApi
+import com.example.corenetwork.model.auth.SignUpRequestEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 import org.koin.core.component.KoinComponent
@@ -22,26 +23,25 @@ interface SignUp {
     fun validateNickname(text: String)
     fun validatePhone(text: String)
     fun validatePassword(text: String)
-    fun openAppTheme()
 }
 
 class SignUpComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     authApi: AuthApi,
-    settings: SettingsPersistent,
-    private val onAppTheme: () -> Unit,
-    private val onSuccess: () -> Unit
-): SignUp, ComponentContext by componentContext, KoinComponent {
+    private val settings: SettingsPersistent,
+    private val onSuccess: () -> Unit,
+) : SignUp, ComponentContext by componentContext, KoinComponent {
     private lateinit var binder: Binder
 
-    private val store = instanceKeeper.getStore {
-        SignUpStoreFactory(
-            storeFactory = storeFactory,
-            authService = authApi,
-            settings = settings
-        ).create()
-    }
+    private val store =
+        instanceKeeper.getStore {
+            SignUpStoreFactory(
+                storeFactory = storeFactory,
+                authService = authApi,
+                settings = settings,
+            ).create()
+        }
 
     override val state: Value<SignUpStore.UISignUpState>
         get() = _state
@@ -51,25 +51,31 @@ class SignUpComponent(
     init {
         lifecycle.subscribe(
             onCreate = {
-                binder = bind(Dispatchers.Main.immediate) {
-                    store.states.map { it } bindTo {
-                        _state.value = it
-                        if (it.isSuccess) {
-                            onSuccess()
+                binder =
+                    bind(Dispatchers.Main.immediate) {
+                        store.states.map { it } bindTo {
+                            _state.value = it
+                            if (it.isSuccess) {
+                                onSuccess()
+                            }
                         }
                     }
-                }
                 binder.start()
                 store.accept(SignUpStore.Intent.StartFlow)
             },
             onStop = {
                 binder.stop()
-            }
+            },
         )
     }
 
     override fun authWithPassword() {
-        store.accept(SignUpStore.Intent.TryAuthPassword)
+        val entity = SignUpRequestEntity(
+            _state.value.nickname.text,
+            _state.value.phoneNumberState.text,
+            _state.value.passwordState.text
+        )
+        store.accept(SignUpStore.Intent.TryAuthPassword(entity))
     }
 
     override fun validateNickname(text: String) {
@@ -82,9 +88,5 @@ class SignUpComponent(
 
     override fun validatePassword(text: String) {
         store.accept(SignUpStore.Intent.ValidatePassword(text))
-    }
-
-    override fun openAppTheme() {
-        onAppTheme()
     }
 }
