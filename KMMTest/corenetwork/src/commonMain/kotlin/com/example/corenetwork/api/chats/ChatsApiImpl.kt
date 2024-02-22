@@ -21,7 +21,6 @@ import io.ktor.http.contentType
 import kotlinx.serialization.Serializable
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import kotlin.random.Random
 
 internal class ChatsApiImpl(
     private val client: HttpClient,
@@ -55,12 +54,7 @@ internal class ChatsApiImpl(
         if (settingsPersistent.get(SettingsValue.BoolValue(SettingsKeys.fakeChats))
                 .value() as Boolean
         ) {
-            return listOf(
-                chatUnitMock(),
-                chatUnitMock(),
-                chatUnitMock(),
-                chatUnitMock()
-            )
+            return ChatUnit.chatsUnitMock()
         }
 
         val currentUserId = localCache.getCurrentUser()?.id ?: ""
@@ -103,13 +97,9 @@ internal class ChatsApiImpl(
         }
         else -> emptyList()
     }
-
-    private fun chatUnitMock() = ChatUnit(
-        "${Random.nextInt()}",
-        "Test${Random.nextInt()}",
-        "Test${Random.nextInt()}Id"
-    )
 }
+
+fun ChatUnit.Companion.chatsUnitMock() = (0..<30).toList().map { ChatUnit(id = "$it", name = "Name", ownerId = "${it * 2}") }
 
 @Serializable
 data class CreateFaceToFaceChatRequest(

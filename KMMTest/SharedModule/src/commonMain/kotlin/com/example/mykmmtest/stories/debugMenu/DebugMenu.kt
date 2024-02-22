@@ -1,6 +1,7 @@
 package com.example.mykmmtest.stories.debugMenu
 
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.instancekeeper.getOrCreate
 import com.example.core.CoroutineFeature
@@ -12,6 +13,8 @@ import com.example.corenetwork.di.coreNetworkModule
 import com.example.core.MVI.AnyStateFlow
 import com.example.mykmmtest.utils.value
 import com.example.core.MVI.wrapToAny
+import com.example.core.Services.key
+import com.example.core.Services.value
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -20,6 +23,41 @@ interface DebugMenu {
     val settings: Value<SettingsSections>
     fun close()
     fun updateSettings(value: SettingsValue, newValue: Any)
+}
+
+class PreviewDebugMenu : DebugMenu {
+    override val settings: Value<SettingsSections> = MutableValue(
+        SettingsSections(
+            boolSection = BooleanSection(
+                "Toggles",
+                settings = listOf(
+                    SettingsValue.BoolValue("key1", false),
+                    SettingsValue.BoolValue("key2", true),
+                    SettingsValue.BoolValue("key3", false),
+                    SettingsValue.BoolValue("key4", false),
+                    SettingsValue.BoolValue("key5", true),
+                    SettingsValue.BoolValue("key6", false),
+                    SettingsValue.BoolValue("key7", true),
+                    SettingsValue.BoolValue("key8", true),
+                )
+            ),
+            stringsSection = StringsSection(
+                "Strings",
+                settings = listOf(
+                    SettingsValue.StringValue("key9", "any_string"),
+                    SettingsValue.StringValue("key10", "longer_any_string_string"),
+                    SettingsValue.StringValue("key11", "string"),
+                    SettingsValue.StringValue("key12", "any"),
+                    SettingsValue.StringValue("key13", "any")
+                )
+            )
+        )
+    )
+
+    override fun close() {}
+
+    override fun updateSettings(value: SettingsValue, newValue: Any) {
+    }
 }
 
 class DebugMenuComponent(
@@ -107,7 +145,7 @@ internal class DebugMenuFeature(
         return newList
     }
 }
-
+// TODO: переделать и на уровне апи тоже. Тут нужно все в общий список
 data class SettingsSections(
     var boolSection: BooleanSection = BooleanSection(),
     var stringsSection: StringsSection = StringsSection()

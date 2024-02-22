@@ -9,6 +9,7 @@ import com.arkivanov.decompose.router.children.SimpleNavigation
 import com.arkivanov.decompose.router.children.children
 import com.arkivanov.decompose.value.Value
 import com.example.apptheme.SettingsPageComponent
+import com.example.mykmmtest.MR
 import com.example.mykmmtest.stories.mainPage.MainPages
 import com.example.mykmmtest.stories.mainPage.MainPagesComponent
 import kotlinx.serialization.Serializable
@@ -16,15 +17,30 @@ import kotlinx.serialization.Serializable
 interface Tab {
     val children: Value<TabChild>
 
+    fun changeTab(toTab: Tabs)
     data class TabChild(
         val mainPage: Child.Created<*, MainPages>,
-        val settings: Child.Created<*, SettingsPageComponent>
+        val settings: Child.Created<*, SettingsPageComponent>,
+        val selectedTab: Tabs
     )
 }
 
 enum class Tabs {
     MAIN_PAGE, SETTINGS
 }
+
+fun Tabs.navTitle() = when(this) {
+    Tabs.MAIN_PAGE -> MR.strings.chats_screen_title
+    Tabs.SETTINGS -> MR.strings.chats_screen_title
+}
+
+//class PreviewTabComponent : Tab {
+//    override val children: Value<Tab.TabChild> = MutableValue(
+//        Tab.TabChild(
+//            mainPage =
+//        )
+//    )
+//}
 
 class TabComponent(
     componentContext: ComponentContext
@@ -41,11 +57,16 @@ class TabComponent(
             Tab.TabChild(
                 mainPage = child.first { it.instance is MainPagesComponent } as Child.Created<*, MainPagesComponent>,
                 settings = child.first { it.instance is SettingsPageComponent } as Child.Created<*, SettingsPageComponent>,
+                selectedTab = s.selectedTab
             )
         },
         navTransformer = { navState, event -> event(navState) },
         childFactory = ::child
     )
+
+    override fun changeTab(toTab: Tabs) {
+        navigation.navigate { it.copy(toTab) }
+    }
 
     private fun child(config: TabConfig, componentContext: ComponentContext): Any = when (config) {
         is TabConfig.MainPage -> MainPagesComponent(

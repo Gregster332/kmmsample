@@ -34,8 +34,13 @@ sealed interface SettingsValue {
 }
 
 fun SettingsValue.value(): Any? = when(this) {
-    is SettingsValue.StringValue -> { this.value }
-    is SettingsValue.BoolValue -> { this.value }
+    is SettingsValue.StringValue -> this.value
+    is SettingsValue.BoolValue -> this.value
+}
+
+fun SettingsValue.key() : String = when(this) {
+    is SettingsValue.StringValue -> this.key
+    is SettingsValue.BoolValue -> this.key
 }
 
 interface SettingsPersistent {

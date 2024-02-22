@@ -23,13 +23,20 @@ struct MainTabView: View {
     }
     
     var body: some View {
-        TabView {
+        TabView(
+            selection: .init(
+                get: { models.value.selectedTab },
+                set: { component.changeTab(toTab: $0) }
+            )
+        ) {
             Group {
                 MainPageView(models.value.mainPage.instance)
                     .tabItem { Label("Chats", systemImage: "message.fill") }
+                    .tag(Tabs.mainPage)
                 
                 AppThemeView(models.value.settings.instance)
                     .tabItem { Label("Settings", systemImage: "gearshape.2.fill") }
+                    .tag(Tabs.settings)
             }
         }
         .tint(.primary)

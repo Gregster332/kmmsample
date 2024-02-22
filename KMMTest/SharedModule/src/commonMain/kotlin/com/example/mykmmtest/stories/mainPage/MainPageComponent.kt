@@ -27,7 +27,6 @@ import com.example.mykmmtest.di.services
 import com.example.mykmmtest.di.storeFactoryModule
 import com.example.searchlist.SearchListComponent
 import kotlinx.serialization.Serializable
-import org.koin.core.component.KoinComponent
 
 @Serializable
 sealed class MainPageConfiguration {
@@ -50,7 +49,6 @@ interface MainPages {
     val children: Value<Children>
     val stack: Value<ChildStack<*, StackChild>>
 
-    fun onBackPressed()
     fun list(open: Boolean)
 
     data class Children(
@@ -114,10 +112,6 @@ class MainPagesComponent(
         navigation.navigate { it.copy(isSearchOpen = open) }
     }
 
-    override fun onBackPressed() {
-        stackNavigation.pop()
-    }
-
     private fun child(config: MainPageConfiguration, componentContext: ComponentContext): Any = when (config) {
             is MainPageConfiguration.Main ->
                 ChatsComponent(
@@ -152,7 +146,9 @@ class MainPagesComponent(
                 scope.get(),
                 scope.get(),
                 config.chat
-            )
+            ) {
+                stackNavigation.pop()
+            }
         )
     }
 

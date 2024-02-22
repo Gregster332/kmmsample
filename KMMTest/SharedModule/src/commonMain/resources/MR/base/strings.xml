@@ -7,4 +7,7 @@
     <string name="nickname_field_title">Nickname</string>
     <string name="phone_field_title">Email</string>
     <string name="password_field_title">Password</string>
+
+    <!--  Chats  -->
+    <string name="chats_screen_title">Chats</string>
 </resources>

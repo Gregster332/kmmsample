@@ -6,7 +6,6 @@ import com.arkivanov.mvikotlin.core.store.Reducer
 import com.arkivanov.mvikotlin.core.store.SimpleBootstrapper
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
-import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineBootstrapper
 import com.example.core.MVI.BaseExecutor
 import com.example.corenetwork.api.auth.LocalCache
 import com.example.corenetwork.api.chats.ChatsApi

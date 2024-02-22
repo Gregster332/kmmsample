@@ -12,9 +12,26 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.bind
 import com.arkivanov.mvikotlin.extensions.coroutines.states
 import com.example.corenetwork.api.chats.ChatsApi
+import com.example.corenetwork.api.chats.chatsUnitMock
 import com.example.corenetwork.model.chats.ChatUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
+
+class PreviewChatsComponent : Chats {
+    override val chats: Value<ChatsStore.ChatsUiState> = MutableValue(
+        ChatsStore.ChatsUiState(
+            isLoading = false,
+            null,
+            chats = ChatUnit.chatsUnitMock()
+        )
+    )
+
+    override fun tryLoadChats() {
+    }
+
+    override fun openChat(chatUnit: ChatUnit) {
+    }
+}
 
 class ChatsComponent(
     componentContext: ComponentContext,

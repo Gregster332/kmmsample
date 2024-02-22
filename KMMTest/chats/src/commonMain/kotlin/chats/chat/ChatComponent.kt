@@ -7,8 +7,6 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.doOnCreate
 import com.arkivanov.essenty.lifecycle.doOnDestroy
-import com.arkivanov.essenty.lifecycle.doOnStart
-import com.arkivanov.essenty.lifecycle.doOnStop
 import com.arkivanov.mvikotlin.core.binder.Binder
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
@@ -21,13 +19,28 @@ import com.example.corenetwork.model.chats.ChatUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 
+class PreviewChatComponent() : Chat {
+    override val currentMessages: Value<ChatStore.State> = MutableValue(
+        ChatStore.State(
+            isLoading = false,
+            messages = (0..<30).toList()
+                .map { "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum" + "$it" }
+        )
+    )
+
+    override fun send(message: String) {}
+
+    override fun close() {}
+}
+
 class ChatComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     webSocketNew: WebSocketNew,
     chatsApi: ChatsApi,
     localCache: LocalCache,
-    private val chat: ChatUnit
+    private val chat: ChatUnit,
+    private val onBackAction: () -> Unit
 ) : Chat, ComponentContext by componentContext {
     private val store =
         instanceKeeper.getStore {
@@ -68,6 +81,7 @@ class ChatComponent(
 
     override fun close() {
         store.accept(ChatStore.Intent.Close)
+        onBackAction()
     }
 
     private fun acceptState(state: ChatStore.State) {
