@@ -25,7 +25,7 @@ struct MainView: View {
                 ScrollView {
                     LazyVStack(spacing: 0) {
                         ForEach(models.value.messages, id: \.self) { message in
-                            MessageView(name: "Heloo", message: message)
+                            MessageView(chatMessage: message)
                                 .rotationEffect(.radians(.pi))
                         }
                     }

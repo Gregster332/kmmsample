@@ -1,7 +1,9 @@
 package com.example.backend.websockets
 
+import com.example.backend.UserBaseInfo
 import com.example.backend.db.dao.ChatsDao
 import com.example.backend.db.dao.MessagesDao
+import com.example.backend.db.dao.UsersDao
 import com.example.backend.db.entities.MessageMap
 import com.example.backend.models.MessageUnit
 import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
@@ -10,10 +12,13 @@ import io.ktor.server.application.install
 import io.ktor.server.routing.routing
 import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.pingPeriod
+import io.ktor.server.websocket.receiveDeserialized
 import io.ktor.server.websocket.timeout
 import io.ktor.server.websocket.webSocket
+import io.ktor.websocket.CloseReason
 import io.ktor.websocket.DefaultWebSocketSession
 import io.ktor.websocket.Frame
+import io.ktor.websocket.readBytes
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
 import kotlinx.coroutines.async
@@ -26,9 +31,9 @@ import java.time.Duration
 import java.util.HashSet
 import java.util.concurrent.atomic.AtomicInteger
 
-fun Application.configureWebSocket(chatsDao: ChatsDao, messagesDao: MessagesDao) {
+fun Application.configureWebSocket(usersDao: UsersDao, chatsDao: ChatsDao, messagesDao: MessagesDao) {
     install(WebSockets) {
-        pingPeriod = Duration.ofSeconds(15)
+        pingPeriod = Duration.ofSeconds(150)
         timeout = Duration.ofSeconds(120000)
         maxFrameSize = Long.MAX_VALUE
         masking = false
@@ -45,13 +50,12 @@ fun Application.configureWebSocket(chatsDao: ChatsDao, messagesDao: MessagesDao)
             try {
                 for (frame in incoming) {
                     frame as? Frame.Text ?: continue
+                    println(frame.readText())
                     val message = Json.decodeFromString<MessageUnit>(frame.readText())
 
-                    val l = async {
+                    val creteMessage = async {
                         newSuspendedTransaction {
                             chatsDao.getBy(message.chatId)?.let {
-                                println(it)
-
                                 val newMessage = messagesDao.create(
                                     MessageMap(message.message, message.senderId)
                                 )
@@ -64,7 +68,7 @@ fun Application.configureWebSocket(chatsDao: ChatsDao, messagesDao: MessagesDao)
                         }
                     }
 
-                    l.await()
+                    creteMessage.await()
 
                     connections.forEach { connection ->
                         if (connection.session.isActive) {
@@ -73,18 +77,16 @@ fun Application.configureWebSocket(chatsDao: ChatsDao, messagesDao: MessagesDao)
                     }
                 }
             } catch (e: Exception) {
-                println(e)
+                connection.session.send(
+                    Frame.Close(reason = CloseReason(CloseReason.Codes.GOING_AWAY, ""))
+                )
             } finally {
-                println("Finally")
                 connections -= connection
             }
         }
     }
 }
 
-class Connection(val session: DefaultWebSocketSession) {
-    companion object {
-        val lastId = AtomicInteger(0)
-    }
-    val name = "user${lastId.getAndIncrement()}"
-}
+data class Connection(
+    val session: DefaultWebSocketSession
+)

@@ -47,7 +47,6 @@ interface SettingsPersistent {
     val allSettings: StateFlow<List<SettingsValue>>
     fun add(type: SettingsValue)
     fun get(type: SettingsValue): SettingsValue
-    fun <Type> listen(listener: Listener<Type>)
     fun clear()
 }
 
@@ -103,17 +102,6 @@ internal class SettingsPersistentImpl(
         is SettingsValue.BoolValue -> {
             settings.putBoolean(KeyNamingFactory.createKey(type.key), type.value)
             getAllSettings()
-        }
-    }
-
-    override fun <Type> listen(listener: Listener<Type>) = when (listener) {
-        is Listener.StringListener -> {
-            val string = settings.getString(KeyNamingFactory.createKey(listener.key), "")
-            listener.callback(string)
-        }
-        is Listener.BoolListener -> {
-            val bool = settings.getBoolean(KeyNamingFactory.createKey(listener.key), false)
-            listener.callback(bool)
         }
     }
 

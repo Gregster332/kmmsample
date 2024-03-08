@@ -50,6 +50,7 @@ interface MainPages {
     val stack: Value<ChildStack<*, StackChild>>
 
     fun list(open: Boolean)
+    fun popStack()
 
     data class Children(
         val mainChild: Child.Created<*, ChatsComponent>,
@@ -110,6 +111,10 @@ class MainPagesComponent(
 
     override fun list(open: Boolean) {
         navigation.navigate { it.copy(isSearchOpen = open) }
+    }
+
+    override fun popStack() {
+        stackNavigation.pop()
     }
 
     private fun child(config: MainPageConfiguration, componentContext: ComponentContext): Any = when (config) {

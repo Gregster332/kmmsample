@@ -9,9 +9,12 @@ interface KeyVaultStorage {
     fun getRefreshToken(): String?
     fun setAuthToken(token: String)
     fun getAuthToken(): String?
+    fun clear()
 }
 
-internal class KeyVaultStorageImpl: KeyVaultStorage, KoinComponent {
+internal class KeyVaultStorageImpl(
+
+): KeyVaultStorage, KoinComponent {
 
     private val kVault: KVault by inject()
 
@@ -26,6 +29,12 @@ internal class KeyVaultStorageImpl: KeyVaultStorage, KoinComponent {
     }
 
     override fun getAuthToken(): String? = kVault.string(authTokenKey)
+
+    override fun clear() {
+        listOf(refreshTokenKey, authTokenKey).forEach {
+            kVault.deleteObject(it)
+        }
+    }
 
     companion object {
         const val refreshTokenKey = "refresh_token_key"

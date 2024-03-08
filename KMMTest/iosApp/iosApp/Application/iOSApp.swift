@@ -1,6 +1,5 @@
 import SwiftUI
 import SharedModule
-import UIElements
 
 @main
 struct MainApp: App {
@@ -14,7 +13,9 @@ struct MainApp: App {
     
     var body: some Scene {
         WindowGroup {
-            SplashView()
+            ToastRoot {
+                SplashView()
+            }
         }
     }
 }
@@ -57,7 +58,9 @@ final class DeviceSensorApiImpl: DeviceSensorApi {
         )
     }
     
-    func stop() {}
+    func stop() {
+        NotificationCenter.default.removeObserver(self)
+    }
     
     @objc private func deviceDidMotion() {
         listener()

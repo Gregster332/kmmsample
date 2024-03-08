@@ -9,7 +9,6 @@
 import Combine
 import SharedModule
 import SwiftUI
-import UIElements
 
 struct SplashContent: View {
     

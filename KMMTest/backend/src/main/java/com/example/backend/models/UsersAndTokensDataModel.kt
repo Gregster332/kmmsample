@@ -1,13 +1,13 @@
-package com.example.backend.authorization.Models
+package com.example.backend.models
 
 import com.example.backend.utils.serializers.UUIDSerializer
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
 @Serializable
-data class TokensResponse(
-    val accessToken: String,
-    val refreshToken: String,
+data class UsersAndTokensDataModel(
     @Serializable(UUIDSerializer::class)
-    val userId: UUID
+    val userId: UUID,
+    val accessToken: String?,
+    val refreshToken: String?
 )

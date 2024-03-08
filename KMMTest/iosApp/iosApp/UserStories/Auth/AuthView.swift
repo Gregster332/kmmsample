@@ -9,7 +9,6 @@
 import Combine
 import SwiftUI
 import SharedModule
-import UIElements
 
 struct AuthView: View {
     
@@ -148,6 +147,9 @@ struct AuthView: View {
                 focus = nil
             }
         }
+        .onReceive(models.value.errorMessage.publisher, perform: { value in
+            ToastsStore.shared.presentToast(with: value)
+        })
         .onAppear {
             focus = .nickname
         }

@@ -8,7 +8,6 @@
 
 import SwiftUI
 import SharedModule
-import UIElements
 
 struct MainTabView: View {
     

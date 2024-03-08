@@ -8,7 +8,7 @@ interface SettingsPage {
     val settings: Value<SettingsStore.SettingsUIState>
 
     fun changeAppTheme(to: AppThemeEnum)
-    fun printAppTheme()
+    fun logOut()
 }
 
 

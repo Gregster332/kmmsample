@@ -15,15 +15,15 @@ class MessagesDao {
         }
     }
 
-    suspend fun getAll() = DatabaseSingleton.dbQuery {
-        MessageEntity.all().map { it.toMessage() }
-    }
-
-    suspend fun getBy(id: Int) = DatabaseSingleton.dbQuery {
-        MessageEntity.findById(id)?.toMessage()
-    }
-
-    suspend fun getBy(equals: (Table) -> Op<Boolean>) = DatabaseSingleton.dbQuery {
-        MessageEntity.find { equals(Messages) }.map { it.toMessage() }
-    }
+//    suspend fun getAll() = DatabaseSingleton.dbQuery {
+//        MessageEntity.all().map { it.toMessage() }
+//    }
+//
+//    suspend fun getBy(id: Int) = DatabaseSingleton.dbQuery {
+//        MessageEntity.findById(id)?.toMessage()
+//    }
+//
+//    suspend fun getBy(equals: (Table) -> Op<Boolean>) = DatabaseSingleton.dbQuery {
+//        MessageEntity.find { equals(Messages) }.map { it.toMessage() }
+//    }
 }

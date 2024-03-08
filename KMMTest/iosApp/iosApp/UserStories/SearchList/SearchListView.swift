@@ -60,7 +60,7 @@ struct MainPageView: View {
             stackValue: stack,
             getTitle: { _ in "" },
             tintColor: colorScheme == .dark ? .white : .black,
-            onBack: { component.onBackPressed() }
+            onBack: { component.popStack() }
         ) { child in
             stackView(child)
         }

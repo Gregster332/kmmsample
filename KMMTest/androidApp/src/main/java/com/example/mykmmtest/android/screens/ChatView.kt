@@ -39,7 +39,11 @@ import com.example.mykmmtest.MR
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatView(chat: Chat, onHideBottomBar: (Boolean) -> Unit) {
+fun ChatView(
+    chat: Chat,
+    onHideBottomBar: (Boolean) -> Unit,
+    onTapBack: () -> Unit
+    ) {
 
     val chats by chat.currentMessages.subscribeAsState()
 
@@ -57,6 +61,7 @@ fun ChatView(chat: Chat, onHideBottomBar: (Boolean) -> Unit) {
                     IconButton(onClick = {
                         onHideBottomBar(true)
                         chat.close()
+                        onTapBack()
                     }) {
                         Icon(
                             painter = painterResource(id = MR.images.xmark.drawableResId),
@@ -108,7 +113,7 @@ fun ChatView(chat: Chat, onHideBottomBar: (Boolean) -> Unit) {
                             fontWeight = FontWeight.SemiBold,
                             text = "Nickname"
                         )
-                        Text(it)
+                        Text(it.message)
                     }
                 }
             }
@@ -119,5 +124,5 @@ fun ChatView(chat: Chat, onHideBottomBar: (Boolean) -> Unit) {
 @Preview
 @Composable
 fun ChatViewPreview() {
-    ChatView(chat = PreviewChatComponent(), onHideBottomBar = {})
+    ChatView(chat = PreviewChatComponent(), onHideBottomBar = {}, onTapBack = {})
 }

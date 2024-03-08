@@ -33,7 +33,7 @@ fun MainPageView(mainPages: MainPages, onHideBottomBar: (Boolean) -> Unit) {
         ) {
             when (val child = it.instance) {
                 is MainPages.StackChild.ChatMain -> {
-                    ChatView(chat = child.chat, onHideBottomBar)
+                    ChatView(chat = child.chat, onHideBottomBar) { mainPages.popStack() }
                 }
 
                 else -> {

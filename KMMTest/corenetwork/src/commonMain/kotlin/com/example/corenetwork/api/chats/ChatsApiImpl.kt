@@ -66,7 +66,7 @@ internal class ChatsApiImpl(
                     client
                         .get("http://localhost.proxyman.io:8080/chats") {
                             bearerAuth(token)
-                            accept(ContentType.Application.Json)
+                            //accept(ContentType.Application.Json)
                             parameter("userId", currentUserId)
                         }
                         .body<List<ChatUnit>>()
@@ -91,7 +91,6 @@ internal class ChatsApiImpl(
                     parameter("chatId", chatId)
                 }.body<List<MessageUnit>>()
             } catch (e: Exception) {
-                println(e)
                 emptyList()
             }
         }
@@ -112,5 +111,7 @@ data class CreateFaceToFaceChatRequest(
 data class MessageUnit(
     val chatId: String,
     val message: String,
-    val senderId: String
+    val senderId: String,
+    val nickname: String,
+    val timestamp: String
 )

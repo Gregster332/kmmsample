@@ -9,11 +9,14 @@ import com.example.corenetwork.model.auth.AuthState
 import com.example.corenetwork.model.auth.SignUpRequestEntity
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -76,9 +79,9 @@ internal class AuthApiImpl(
 ) : AuthApi, KoinComponent {
     private val localCache: LocalCache by inject()
 
-    override suspend fun generateToken(entity: SignUpRequestEntity): Boolean = withContext(Dispatchers.IO) {
+    override suspend fun generateToken(entity: SignUpRequestEntity): TokensResponse? = withContext(Dispatchers.IO) {
         if (settingsPersistent.get(SettingsValue.BoolValue(SettingsKeys.skipAuthKey)).value() as Boolean) {
-            return@withContext true
+            return@withContext TokensResponse("", "", "")
         }
         val url = "http://localhost.proxyman.io:8080/signUp"
         try {
@@ -88,17 +91,15 @@ internal class AuthApiImpl(
                 }.body<TokensResponse>()
 
             if (response.accessToken.isEmpty() || response.refreshToken.isEmpty()) {
-                return@withContext false
+                return@withContext null
             }
 
             kVault.setAuthToken(response.accessToken)
             kVault.setRefreshToken(response.refreshToken)
-            println(kVault.getAuthToken())
-            println(kVault.getRefreshToken())
-            true
+            response
         } catch (e: Exception) {
-            println(e)
-            false
+            //println(e)
+            null
         }
     }
 
@@ -115,10 +116,6 @@ internal class AuthApiImpl(
                             UserLogInInfo.serializer(),
                             response.bodyAsText(),
                         )
-
-                    decoded.userInfo?.let {
-                        localCache.saveNewUser(it.mapToRequestModel(true))
-                    }
 
                     return@withContext decoded
                 }
@@ -146,6 +143,23 @@ internal class AuthApiImpl(
             throw CancellationException(e.message)
         }
     }
+
+    override suspend fun logOut() = kVault.getAuthToken()?.let { token ->
+        return (localCache.getCurrentUser())?.let {
+            try {
+                val response = client.get("http://localhost.proxyman.io:8080/logOut") {
+                    parameter("id", it.id)
+                    bearerAuth(token)
+                }
+                if (response.status == HttpStatusCode.OK) {
+                    kVault.clear()
+                    true
+                } else false
+            } catch (e: Exception) {
+                false
+            }
+        } ?: false
+    } ?: false
 }
 
 @Serializable
@@ -162,4 +176,5 @@ data class RefreshTokenResult(
 data class TokensResponse(
     val accessToken: String,
     val refreshToken: String,
+    val userId: String
 )

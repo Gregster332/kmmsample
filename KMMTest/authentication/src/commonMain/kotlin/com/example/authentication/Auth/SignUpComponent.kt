@@ -11,6 +11,8 @@ import com.arkivanov.mvikotlin.extensions.coroutines.bind
 import com.arkivanov.mvikotlin.extensions.coroutines.states
 import com.example.core.Services.SettingsPersistent
 import com.example.corenetwork.api.auth.AuthApi
+import com.example.corenetwork.api.auth.LocalCache
+import com.example.corenetwork.api.users.UsersApi
 import com.example.corenetwork.model.auth.SignUpRequestEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
@@ -29,18 +31,20 @@ class SignUpComponent(
     componentContext: ComponentContext,
     storeFactory: StoreFactory,
     authApi: AuthApi,
-    private val settings: SettingsPersistent,
+    usersApi: UsersApi,
+    localCache: LocalCache,
     private val onSuccess: () -> Unit,
 ) : SignUp, ComponentContext by componentContext, KoinComponent {
     private lateinit var binder: Binder
 
     private val store =
         instanceKeeper.getStore {
-            SignUpStoreFactory(
-                storeFactory = storeFactory,
-                authService = authApi,
-                settings = settings,
-            ).create()
+            SignUpStoreFactory.create(
+                storeFactory,
+                authApi,
+                usersApi,
+                localCache
+            )
         }
 
     override val state: Value<SignUpStore.UISignUpState>

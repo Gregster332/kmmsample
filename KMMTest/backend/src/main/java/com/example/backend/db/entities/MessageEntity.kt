@@ -1,11 +1,14 @@
 package com.example.backend.db.entities
 
 import com.example.backend.db.tables.Messages
+import com.example.backend.utils.serializers.DateSerializer
 import com.example.backend.utils.serializers.UUIDSerializer
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
+import java.sql.Timestamp
+import java.util.Date
 import java.util.UUID
 
 @Serializable

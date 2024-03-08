@@ -5,6 +5,7 @@ import com.example.backend.db.tables.ChatsAndMessages
 import com.example.backend.db.tables.ChatsAndParticipants
 import com.example.backend.db.tables.Messages
 import com.example.backend.db.tables.Users
+import com.example.backend.db.tables.UsersAndTokens
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -18,7 +19,7 @@ object DatabaseSingleton {
         Database.connect(jdbcURL, driverClassName, user = "postgres", password = "postgres")
 
         transaction {
-            SchemaUtils.createMissingTablesAndColumns(Users, Chats, ChatsAndParticipants, Messages, ChatsAndMessages)
+            SchemaUtils.createMissingTablesAndColumns(Users, UsersAndTokens, Chats, ChatsAndParticipants, Messages, ChatsAndMessages)
         }
     }
 

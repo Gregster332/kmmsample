@@ -2,6 +2,7 @@ package com.example.apptheme
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
+import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.instancekeeper.getOrCreate
 import com.arkivanov.essenty.lifecycle.doOnCreate
 import com.arkivanov.essenty.lifecycle.doOnStop
@@ -21,7 +22,8 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 
 class SettingsPageComponent(
-    componentContext: ComponentContext
+    componentContext: ComponentContext,
+    didLoggedOut: () -> Unit
 ) : SettingsPage, ComponentContext by componentContext, KoinComponent {
 
     private val koinContext = instanceKeeper.getOrCreate {
@@ -36,7 +38,9 @@ class SettingsPageComponent(
         SettingsStoreProvider.create(
             get(),
             get(),
-            scope.get()
+            scope.get(),
+            scope.get(),
+            didLoggedOut = didLoggedOut
         )
     }
 
@@ -62,11 +66,30 @@ class SettingsPageComponent(
         store.accept(SettingsStore.Intent.ChangeAppTheme(to))
     }
 
-    override fun printAppTheme() {
-        println(settings.value)
+    override fun logOut() {
+        store.accept(SettingsStore.Intent.LogOut)
     }
 
     private fun acceptState(state: SettingsStore.SettingsUIState) {
         _settings.value = state
     }
+}
+
+class PreviewSettingsPageComponent : SettingsPage {
+    override val settings: Value<SettingsStore.SettingsUIState> = MutableValue(
+        SettingsStore.SettingsUIState(
+            userName = "Test",
+            userEmail = "text@mail.ru",
+            sections = listOf(
+                SettingsStore.SettingsSection.Appearence(),
+                SettingsStore.SettingsSection.Default(
+                    listOf(SettingsStore.SettingsCell("Privacy & Security")
+                )),
+            )
+        )
+    )
+
+    override fun changeAppTheme(to: AppThemeEnum) {}
+
+    override fun logOut() {}
 }

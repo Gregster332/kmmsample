@@ -2,11 +2,13 @@ package com.example.backend.authorization
 
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.example.backend.authorization.Models.TokensResponse
-import com.example.backend.authorization.Tokens.RefreshTokenRepository
 import com.example.backend.models.LoginState
 import com.example.backend.UserBaseInfo
+import com.example.backend.db.dao.UsersAndTokensDao
 import com.example.backend.db.dao.UsersDao
 import com.example.backend.db.entities.UserEntity
+import com.example.backend.db.tables.UsersAndTokens
+import com.example.backend.models.UsersAndTokensDataModel
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -23,7 +25,7 @@ import java.util.UUID
 @Serializable
 data class UserLogInInfo(
     val userInfo: UserBaseInfo? = null,
-    val loginState: LoginState = LoginState(),
+    val loginState: LoginState,
 )
 
 fun Application.configureAuth(jwtService: JwtService) {
@@ -42,7 +44,7 @@ fun Application.configureAuth(jwtService: JwtService) {
                     if (it.isNotEmpty()) {
                         call.respond(
                             HttpStatusCode.OK,
-                            UserLogInInfo(loginState = LoginState(isAccessTokenExpired = true)),
+                            UserLogInInfo(loginState = LoginState(isAccessTokenExpired = true, isAuthorized = false)),
                         )
                     } else {
                         throw BadRequestException("Authorization header can not be blank!")
@@ -56,20 +58,18 @@ fun Application.configureAuth(jwtService: JwtService) {
 class UserAuthenticator(
     private val logger: Logger,
     private val jwtService: JwtService,
-    private val userRepo: UsersDao,
-    private val tokensRepo: RefreshTokenRepository,
+    private val userRepo: UsersDao
 ) {
     suspend fun saveNewUser(userInfo: UserBaseInfo): UserBaseInfo? {
         logger.info(
             "start finding user data with $userInfo",
         )
 
-        var foundUser: UserBaseInfo?
-        try {
-            foundUser = userRepo.getUserBy(UUID.fromString(userInfo.id.toString()))?.mapRequestModel()
+        var foundUser: UserBaseInfo? = try {
+            userRepo.getUserBy(UUID.fromString(userInfo.id.toString()))?.mapRequestModel()
         } catch (e: PSQLException) {
             println("Erroe: ${e.message}")
-            foundUser = null
+            null
         }
 
         logger.info(
@@ -108,7 +108,12 @@ class UserAuthenticator(
             "Found user with nickname ${userInfo.nickname} and password ${userInfo.password}",
         )
 
-        return if (foundUser != null && foundUser.nickname == userInfo.nickname) {
+        return if (
+            foundUser != null
+            && foundUser.nickname == userInfo.nickname
+            && foundUser.email == userInfo.email
+            && foundUser.password == userInfo.password
+            ) {
             val accessToken = jwtService.createAccessToken(userInfo)
             val refreshToken = jwtService.createRefreshToken(userInfo)
 
@@ -116,11 +121,14 @@ class UserAuthenticator(
                 "create aToken $accessToken and refToken $refreshToken",
             )
 
-            tokensRepo.save(refreshToken, userInfo.id.toString())
+            UsersAndTokensDao.createNewPair(
+                UsersAndTokensDataModel(userInfo.id, accessToken, refreshToken)
+            )
 
             TokensResponse(
                 accessToken = accessToken,
                 refreshToken = refreshToken,
+                userId = userInfo.id
             )
         } else {
             logger.info(
@@ -136,15 +144,14 @@ class UserAuthenticator(
         )
 
         val decodedRefreshToken = verifyRefreshToken(token)
-        val persistedId = tokensRepo.findUsernameByToken(token)
+        val persistedId = UsersAndTokensDao.getUserIdByRefreshToken(token)
 
         logger.info(
             "Refresh info: decodedRefreshToken = $decodedRefreshToken and $persistedId",
         )
 
         return if (decodedRefreshToken != null && persistedId != null) {
-            // val foundUser: UserModel? = userRepo.userById(persistedId)
-            val foundUser = userRepo.getUserBy(UUID.fromString(persistedId))?.mapRequestModel()
+            val foundUser = userRepo.getUserBy(persistedId)?.mapRequestModel()
             val nicknameFormRefreshToken: String? = decodedRefreshToken.getClaim("nickname").asString()
 
             logger.info(
@@ -159,6 +166,9 @@ class UserAuthenticator(
                 null
             }
         } else {
+            if (persistedId != null) {
+                UsersAndTokensDao.nullifyTokens(persistedId)
+            }
             null
         }
     }

@@ -34,16 +34,9 @@ fun Tabs.navTitle() = when(this) {
     Tabs.SETTINGS -> MR.strings.chats_screen_title
 }
 
-//class PreviewTabComponent : Tab {
-//    override val children: Value<Tab.TabChild> = MutableValue(
-//        Tab.TabChild(
-//            mainPage =
-//        )
-//    )
-//}
-
 class TabComponent(
-    componentContext: ComponentContext
+    componentContext: ComponentContext,
+    private val didLoggedOut: () -> Unit
 ): Tab, ComponentContext by componentContext {
     private val navigation = SimpleNavigation<(TabComponentNavState) -> TabComponentNavState>()
 
@@ -74,7 +67,7 @@ class TabComponent(
         )
         is TabConfig.Settings -> SettingsPageComponent(
             componentContext,
-
+            didLoggedOut = didLoggedOut
         )
     }
 

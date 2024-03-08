@@ -6,7 +6,12 @@ import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.example.core.MVI.BaseExecutor
 import com.example.core.Services.SettingsPersistent
 import com.example.corenetwork.api.auth.AuthApi
+import com.example.corenetwork.api.auth.LocalCache
+import com.example.corenetwork.api.auth.UserBaseInfo
+import com.example.corenetwork.api.auth.mapToRequestModel
+import com.example.corenetwork.api.users.UsersApi
 import com.example.corenetwork.model.auth.SignUpRequestEntity
+import kotlinx.coroutines.async
 
 interface SignUpStore : Store<SignUpStore.Intent, SignUpStore.UISignUpState, Nothing> {
     data class UISignUpState(
@@ -32,19 +37,20 @@ interface SignUpStore : Store<SignUpStore.Intent, SignUpStore.UISignUpState, Not
     }
 }
 
-class SignUpStoreFactory(
-    private val storeFactory: StoreFactory,
-    private val authService: AuthApi,
-    private val settings: SettingsPersistent,
-) {
-    fun create(): SignUpStore = object :
+object SignUpStoreFactory {
+    fun create(
+        storeFactory: StoreFactory,
+        authService: AuthApi,
+        usersApi: UsersApi,
+        localCache: LocalCache
+    ): SignUpStore = object :
             SignUpStore,
             Store<SignUpStore.Intent, SignUpStore.UISignUpState, Nothing> by storeFactory.create(
                 name = SignUpStore::class.simpleName,
                 initialState = SignUpStore.UISignUpState(),
                 bootstrapper = null,
                 executorFactory = {
-                    SignUpExecutor(authService, settings)
+                    SignUpExecutor(authService, usersApi, localCache)
                 },
                 reducer = SignUpReducer(),
             ) {}
@@ -60,7 +66,8 @@ class SignUpStoreFactory(
 
     internal class SignUpExecutor(
         private val authService: AuthApi,
-        private val settings: SettingsPersistent,
+        private val usersApi: UsersApi,
+        private val localCache: LocalCache,
     ) : BaseExecutor<SignUpStore.Intent, Nothing, SignUpStore.UISignUpState, SignUpMessage, Nothing>() {
         override suspend fun suspendExecuteIntent(
             intent: SignUpStore.Intent
@@ -124,17 +131,25 @@ class SignUpStoreFactory(
         }
 
         private suspend fun passwordAuth(entity: SignUpRequestEntity) {
+            val currentUser = scope.async {
                 try {
-                    val result = authService.generateToken(entity)
-                    if (result) {
-                        dispatch(SignUpMessage.Success)
-                    } else {
-                        dispatch(SignUpMessage.OnError(""))
-                    }
+                    val tokens = authService.generateToken(entity)
+                    val user = usersApi.getUserById(tokens?.userId ?: "")
+                    user
                 } catch (e: Exception) {
-                    println("errrrororor: $e")
-                    dispatch(SignUpMessage.OnError(e.message ?: ""))
+                    null
                 }
+            }
+
+            currentUser.await()?.let {
+                if (localCache.getUserBy(it.id) != null) {
+                    dispatch(SignUpMessage.Success)
+                    return
+                }
+
+                localCache.saveNewUser(it.mapToRequestModel(true))
+                dispatch(SignUpMessage.Success)
+            } ?: dispatch(SignUpMessage.OnError("error here"))
         }
     }
 

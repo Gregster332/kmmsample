@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Workspace
    version = "1.0">
-   <Group
-      location = "group:Core"
-      name = "Core">
-      <FileRef
-         location = "group:UIElements/UIElements.xcodeproj">
-      </FileRef>
-   </Group>
    <FileRef
       location = "group:iosApp.xcodeproj">
    </FileRef>

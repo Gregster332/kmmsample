@@ -18,10 +18,15 @@ import com.example.mykmmtest.MR
 import com.example.mykmmtest.android.NavBar
 
 @Composable
-fun ChatsView(chats: Chats, onHideBottomBar: (Boolean) -> Unit) {
+fun ChatsView(
+    chats: Chats,
+    onHideBottomBar: (Boolean) -> Unit
+) {
     val state by chats.chats.subscribeAsState()
 
-    NavBar(title = MR.strings.chats_screen_title.getString(LocalContext.current)) {
+    NavBar(
+        title = MR.strings.chats_screen_title.getString(LocalContext.current)
+    ) {
         Box(
             Modifier.fillMaxSize()
         ) {

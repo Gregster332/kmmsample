@@ -4,6 +4,7 @@ import com.example.core.Services.KeyVaultStorage
 import com.example.corenetwork.api.auth.UserBaseInfo
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 
@@ -12,6 +13,7 @@ open class NetworkException(message: String) : Exception(message)
 interface UsersApi {
     suspend fun getAllUsers(): List<UserBaseInfo>
     suspend fun searchUsersBy(nickname: String): List<UserBaseInfo>
+    suspend fun getUserById(id: String): UserBaseInfo?
 }
 
 internal class UsersApiImpl(
@@ -38,6 +40,16 @@ internal class UsersApiImpl(
                 }.body()
             else -> { emptyList() }
         }
+
+    override suspend fun getUserById(id: String): UserBaseInfo? = when(
+        val token = kVault.getAuthToken()
+    ) {
+        is String -> httpClient.get("http://localhost.proxyman.io:8080/users/byId") {
+            bearerAuth(token)
+            parameter("id", id)
+        }.body()
+        else -> null
+    }
 }
 
 internal object SyncService {

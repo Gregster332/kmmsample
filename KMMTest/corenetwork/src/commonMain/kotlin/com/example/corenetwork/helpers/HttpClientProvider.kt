@@ -7,12 +7,15 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.encodedPath
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
 
 internal object HttpClientProvider {
     fun get() = HttpClient {
         expectSuccess = true
         install(ContentNegotiation) {
-            json()
+            json(Json {
+                ignoreUnknownKeys = true
+            })
         }
 
         defaultRequest {

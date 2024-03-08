@@ -7,6 +7,8 @@ import com.arkivanov.mvikotlin.core.store.SimpleBootstrapper
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.example.core.MVI.BaseExecutor
+import com.example.core.Services.DateConverter
+import com.example.core.Services.DateFormats
 import com.example.corenetwork.api.auth.LocalCache
 import com.example.corenetwork.api.chats.ChatsApi
 import com.example.corenetwork.api.chats.MessageUnit
@@ -39,9 +41,11 @@ internal object ChatStoreProvider {
         ) {}
 
     private sealed interface Msg {
-        data class GetNewMessage(val message: String) : Msg
+        data class GetNewMessage(
+            val message: ChatStore.ChatMessage,
+        ) : Msg
         data object GetConnectedSuccessful : Msg
-        data object GetErrorWhileConnect : Msg
+        data class GetErrorWhileConnect(val error: Throwable) : Msg
     }
 
     private class ExecutorImpl(
@@ -50,6 +54,8 @@ internal object ChatStoreProvider {
         private val localCache: LocalCache,
         private val chatId: String
     ) : BaseExecutor<Intent, ChatStore.Action, State, Msg, Nothing>() {
+        private val currentUser = localCache.getCurrentUser()
+
         override suspend fun suspendExecuteAction(action: ChatStore.Action) = when(action) {
             is ChatStore.Action.ConnectChat -> connect()
             is ChatStore.Action.LoadMessages -> loadMessages(action.chatId)
@@ -62,8 +68,18 @@ internal object ChatStoreProvider {
 
         private suspend fun connect() {
             scope.launch {
-                webSocketNew.connect {
-                    dispatch(Msg.GetNewMessage(it.message))
+                webSocketNew.connect { message, error ->
+                    val newMessage = ChatStore.ChatMessage(
+                        isOutgoing = currentUser?.id == message?.senderId ?: "",
+                        chatId = message?.chatId ?: "",
+                        senderId = message?.senderId ?: "",
+                        messageText = message?.message ?: "",
+                        nickname = message?.nickname ?: "",
+                        date = DateConverter.convert(message?.timestamp ?: "", DateFormats.HH_MM),
+                        state = if (error != null) ChatStore.MessageState.Sent else ChatStore.MessageState.NotSent(error)
+                    )
+
+                    dispatch(Msg.GetNewMessage(newMessage))
                 }
             }
         }
@@ -83,31 +99,45 @@ internal object ChatStoreProvider {
                     chatsApi.getAllMessages(chatId)
                 }
 
-                result.await().map { it.message }.forEach {
+                result.await().map {
+                    ChatStore.ChatMessage(
+                        nickname = it.nickname,
+                        isOutgoing = currentUser?.id == it.senderId,
+                        chatId = it.chatId,
+                        senderId = it.senderId,
+                        messageText = it.message,
+                        date = DateConverter.convert(it.timestamp, DateFormats.HH_MM),
+                        state = ChatStore.MessageState.Sent
+                    )
+                }.forEach {
                     dispatch(Msg.GetNewMessage(it))
                 }
-
             } catch(e: Exception) {
-                println("Error load chats: $e")
+                println(e)
             }
         }
 
         private fun formattedString(chatId: String, message: String): String {
-            val senderId = localCache.getCurrentUser()?.id ?: ""
-            val message = Json.encodeToString(MessageUnit(chatId, message, senderId))
+            val sender = localCache.getCurrentUser()
+            val sendDate = DateConverter.current
+            val message = Json.encodeToString(
+                MessageUnit(chatId, message, sender?.id ?: "", sender?.nickname ?: "", sendDate)
+            )
             return message
         }
     }
 
     private object ReducerImpl : Reducer<State, Msg> {
         override fun State.reduce(message: Msg): State = when (message) {
-            is Msg.GetNewMessage -> {
-                val newMessages = messages.toMutableList()
-                newMessages.add(0, message.message)
-                copy(newMessages)
-            }
+            is Msg.GetNewMessage -> putNewMessage(message.message)
             is Msg.GetConnectedSuccessful -> copy(isLoading = true)
-            is Msg.GetErrorWhileConnect -> copy(isLoading = true)
+            is Msg.GetErrorWhileConnect -> copy(isLoading = true, error = message.error)
+        }
+
+        private fun State.putNewMessage(m: ChatStore.ChatMessage): State {
+            val oldMessages = messages.toMutableList()
+            oldMessages.add(m)
+            return copy(messages = oldMessages, isLoading = false)
         }
     }
 }

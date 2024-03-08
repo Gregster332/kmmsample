@@ -106,19 +106,19 @@ class SplashComponent(
         )
     }
 
-    override fun didShakeDevice() {
-
-    }
-
     private fun createChild(config: Configuration, componentContext: ComponentContext): Any = when (config) {
         is Configuration.MainPage -> TabComponent(
-            componentContext = componentContext
+            componentContext = componentContext,
+            didLoggedOut = {
+                navigation.navigate { it.copy(SplashStore.AuthorizeState.Reauth) }
+            }
         )
         is Configuration.Auth -> SignUpComponent(
             componentContext = componentContext,
             storeFactory = scope.get(),
             authApi = scope.get(),
-            settings = scope.get(),
+            usersApi = scope.get(),
+            localCache = scope.get(),
             onSuccess = {
                 navigation.navigate { it.copy(SplashStore.AuthorizeState.Autheticated) }
             }
@@ -199,8 +199,6 @@ class SplashComponent(
 interface Splash {
     val child: Value<SplashChild>
     val sheet: Value<ChildSlot<*, SheetChild>>
-
-    fun didShakeDevice()
 
     data class SplashChild(
         val tabChild: Child.Created<*, TabComponent>? = null,

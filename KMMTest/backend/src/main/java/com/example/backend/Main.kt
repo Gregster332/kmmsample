@@ -1,13 +1,13 @@
 package com.example.backend
 
 import com.example.backend.authorization.JwtService
-import com.example.backend.authorization.Tokens.RefreshTokenRepository
 import com.example.backend.authorization.UserAuthenticator
 import com.example.backend.authorization.UserLogInInfo
 import com.example.backend.authorization.configureAuth
 import com.example.backend.db.DatabaseSingleton
 import com.example.backend.db.dao.ChatsDao
 import com.example.backend.db.dao.MessagesDao
+import com.example.backend.db.dao.UsersAndTokensDao
 import com.example.backend.db.dao.UsersDao
 import com.example.backend.models.CreateFaceToFaceChatRequest
 import com.example.backend.models.LoginState
@@ -35,28 +35,29 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import java.util.TimeZone
 import java.util.UUID
 
 fun main() {
+    TimeZone.setDefault(TimeZone.getTimeZone("GMT+3"))
     embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
 
 fun Application.module() {
     log.info("Server started")
-
     DatabaseSingleton.init()
     val userRepo = UsersDao()
     val chats = ChatsDao()
     val messages = MessagesDao()
-    val refreshTokenRepository = RefreshTokenRepository()
     val jwtService = JwtService(log, userRepo)
-    val userAuthenticator = UserAuthenticator(log, jwtService, userRepo, refreshTokenRepository)
+    val userAuthenticator = UserAuthenticator(log, jwtService, userRepo)
 
     format()
     configureAuth(jwtService)
-    configureWebSocket(chats, messages)
+    configureWebSocket(userRepo, chats, messages)
     configureRouting(userAuthenticator, userRepo, chats, messages)
     chatsRouting(userRepo, chats, messages)
 }
@@ -103,8 +104,7 @@ fun Application.configureRouting(
                 return@post
             }
 
-            val user =
-                userService.saveNewUser(
+            val user = userService.saveNewUser(
                     userInfo,
                 ) ?: return@post call.respond(HttpStatusCode.BadRequest)
             val tokenResponse = userService.auth(user)
@@ -137,10 +137,23 @@ fun Application.configureRouting(
                             HttpStatusCode.OK,
                             UserLogInInfo(
                                 userInfo = model,
-                                loginState = LoginState(isAuthorized = true),
+                                loginState = LoginState(isAuthorized = true, isAccessTokenExpired = false),
                             ),
                         )
                     } ?: call.respond(HttpStatusCode.BadRequest)
+                } ?: call.respond(HttpStatusCode.BadRequest)
+            }
+
+            get("/logOut") {
+                call.parameters["id"]?.let {
+                    UsersAndTokensDao.nullifyTokens(UUID.fromString(it))
+                    call.respond(
+                        HttpStatusCode.OK,
+                        UserLogInInfo(
+                            userInfo = null,
+                            loginState = LoginState(isAuthorized = false, isAccessTokenExpired = false),
+                        )
+                    )
                 } ?: call.respond(HttpStatusCode.BadRequest)
             }
 
@@ -152,8 +165,15 @@ fun Application.configureRouting(
                 }
             }
 
+            get("/users/byId") {
+                call.parameters["id"]?.let {
+                    userRepo.getUserBy(UUID.fromString(it))?.let { user ->
+                        call.respond(HttpStatusCode.OK, user.mapRequestModel())
+                    } ?: call.respond(HttpStatusCode.NotFound)
+                } ?: call.respond(HttpStatusCode.BadRequest)
+            }
+
             get("/users/bysearch") {
-                println("BYSEARCH")
                 call.parameters["search_text"]?.let { searchText ->
                     newSuspendedTransaction {
                         val users =
@@ -173,16 +193,13 @@ fun Application.chatsRouting(usersDao: UsersDao, chatsDao: ChatsDao, messagesDao
     routing {
         authenticate("main") {
             get("/chats") {
-                println("Chats!!")
                 val userId: String? = call.parameters["userId"]
-                println("id $userId")
                 if (userId == null) call.respond(HttpStatusCode.BadRequest)
                 val chats = chatsDao.getChatsBy(UUID.fromString(userId))
                 call.respond(HttpStatusCode.OK, chats)
             }
 
             post("/chats/create") {
-                println("Chats create!!")
                 call.receiveNullable<CreateFaceToFaceChatRequest>()?.let {
                     val owner = usersDao.getUserBy(it.ownerId)
                     val opponent = usersDao.getUserBy(it.opponent)
@@ -197,17 +214,19 @@ fun Application.chatsRouting(usersDao: UsersDao, chatsDao: ChatsDao, messagesDao
             }
 
             get("/chats/getMessages") {
-                val sender_id = call.request.header("sender_id") ?: ""
                 call.parameters["chatId"]?.let { chatId ->
                     newSuspendedTransaction {
                         chatsDao.getBy(UUID.fromString(chatId))?.messages?.let { messages ->
-                            if (sender_id.isEmpty()) {
-                                call.respond(HttpStatusCode.BadRequest, "sender_id is null")
-                                return@newSuspendedTransaction
-                            }
-
                             val respond = messages.map { it.toMessage() }
-                                .map { MessageUnit(UUID.fromString(chatId), it.messageText, UUID.fromString(sender_id)) }
+                                .map {
+                                    MessageUnit(
+                                        UUID.fromString(chatId),
+                                        it.messageText,
+                                        it.senderId,
+                                        usersDao.getUserBy(it.senderId)?.nickname ?: ""
+                                    )
+                                }
+
                             call.respond(HttpStatusCode.OK, respond)
                         } ?: call.respond(HttpStatusCode.NotFound, "Messages are empty or null")
                     }

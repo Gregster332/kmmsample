@@ -8,7 +8,6 @@
 
 import SwiftUI
 import SharedModule
-import UIElements
 
 struct OffsetPK: PreferenceKey {
     static var defaultValue: CGFloat = 0
@@ -21,37 +20,65 @@ struct AppThemeView: View {
     
     @State private var offset: CGFloat = 0
     
-    private let component: SettingsPageComponent
+    private let component: SettingsPage
     
     @ObservedObject
     private var settings: ObservableValue<SettingsStoreSettingsUIState>
     
-    init(_ component: SettingsPageComponent) {
+    init(_ component: SettingsPage) {
         self.component = component
         self.settings = ObservableValue(component.settings)
     }
     
     var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 12) {
+        ZStack {
+            List {
+                //Section {
                 profileView()
-                Text("\(offset)")
-                appearenceSection()
-            }
-            .background {
-                GeometryReader { proxy in
-                    Color.clear
-                        .preference(
-                            key: OffsetPK.self,
-                            value: proxy.frame(in: .named("SCROLL")).origin.y
-                        )
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                //}
+                    .background {
+                        GeometryReader { proxy in
+                            Color.clear
+                                .preference(
+                                    key: OffsetPK.self,
+                                    value: proxy.frame(in: .named("SCROLL")).origin.y
+                                )
+                        }
+                    }
+                    .onPreferenceChange(OffsetPK.self, perform: { value in
+                        self.offset = value
+                    })
+                
+                ForEach(0..<settings.value.sections.count, id: \.self) { index in
+                    switch SettingsSectionsSEnum(settings.value.sections[index]) {
+                    case .appearence(let theme):
+                        appearenceSection(selectedTheme: theme)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                    case .def(let cells):
+                        Section {
+                            ForEach(cells, id: \.self) { cell in
+                                HStack {
+                                    Text(cell.title)
+                                    if let info = cell.info {
+                                        Text(info)
+                                    }
+                                }
+                            }
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                        }
+                    }
                 }
+                
+                logOutButton()
             }
-            .onPreferenceChange(OffsetPK.self, perform: { value in
-                self.offset = value
-            })
+            .listStyle(.inset)
+            .coordinateSpace(name: "SCROLL")
         }
-        .coordinateSpace(name: "SCROLL")
+        .scrollContentBackground(.hidden)
         .viewBackground(
             color: MR.colors().backgroundColor.getUIColor()
         )
@@ -74,7 +101,7 @@ struct AppThemeView: View {
                 .frame(width: 100, height: 100)
             
             VStack(spacing: 4) {
-                Text(settings.value.userName)
+                Text("\(offset)")
                     .font(.title)
                     .fontWeight(.semibold)
                 
@@ -86,36 +113,52 @@ struct AppThemeView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity)
         .scaleEffect(x: ideal, y: ideal)
         .opacity(ideal)
     }
     
     @ViewBuilder
-    private func appearenceSection() -> some View {
+    private func appearenceSection(
+        selectedTheme: AppThemeEnum
+    ) -> some View {
         Section {
-            VStack(alignment: .leading) {
-                Text("App theme")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(Color(MR.colors().textPrimary.getUIColor()))
-                
-                Picker(
-                    "",
-                    selection: Binding(
-                        get: { settings.value.appThemeSection.selectedTheme },
-                        set: { component.changeAppTheme(to: $0) })
-                ) {
-                    ForEach(SharedModule.AppThemeEnum.entries, id: \.self) { theme in
-                        Text(theme.name)
-                    }
+            Picker(
+                "",
+                selection: Binding(
+                    get: { selectedTheme },
+                    set: { component.changeAppTheme(to: $0) })
+            ) {
+                ForEach(SharedModule.AppThemeEnum.entries, id: \.self) { theme in
+                    Text(theme.name)
                 }
-                .pickerStyle(.segmented)
             }
+            .pickerStyle(.segmented)
+        } header: {
+            Text("App theme")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(MR.colors().textPrimary.toSUIColor)
         }
-        .padding(8)
-        .background(Color.black.opacity(0.1))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .padding(.horizontal, 16)
-        
+    }
+    
+    @ViewBuilder
+    private func logOutButton() -> some View {
+        Text("Log Out")
+            .font(.system(size: 18, weight: .semibold))
+            .foregroundStyle(.red)
+            .padding(8)
+            .padding(.leading, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(
+                        MR.colors().textFieldBGColor.toSUIColor.opacity(0.1))
+            }
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .onTapGesture {
+                component.logOut()
+            }
     }
 }
 
@@ -130,6 +173,21 @@ extension SharedModule.AppThemeEnum {
     }
 }
 
-//#Preview {
-//    AppThemeView(AppThemePreview())
-//}
+#Preview {
+    AppThemeView(PreviewSettingsPageComponent())
+}
+
+enum SettingsSectionsSEnum {
+    case appearence(SharedModule.AppThemeEnum)
+    case def([SettingsStoreSettingsCell])
+    
+    init(_ obj: SettingsStoreSettingsSection) {
+        if let obj = obj as? SettingsStoreSettingsSectionAppearence {
+            self = .appearence(obj.selectedTheme)
+        } else if let obj = obj as? SettingsStoreSettingsSectionDefault {
+            self = .def(obj.cells)
+        } else {
+            fatalError()
+        }
+    }
+}

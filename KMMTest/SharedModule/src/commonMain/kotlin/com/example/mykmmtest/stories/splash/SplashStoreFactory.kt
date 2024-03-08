@@ -83,7 +83,6 @@ internal class SplashExecutor(
     private fun listenDeviceShake() {
         deviceSensorApi.start()
         deviceSensorApi.setSensorListener {
-            println("Hello sensor")
             didSensorSignal()
         }
     }
@@ -102,6 +101,7 @@ internal class SplashExecutor(
                 dispatch(SplashStoreFactory.SplashMessage.NeedsReauth)
             }
         } catch (e: Exception) {
+            println(e)
             dispatch(SplashStoreFactory.SplashMessage.NeedsReauth)
         }
     }

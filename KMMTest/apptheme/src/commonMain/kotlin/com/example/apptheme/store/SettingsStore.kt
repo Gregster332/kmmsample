@@ -7,16 +7,25 @@ interface SettingsStore : Store<SettingsStore.Intent, SettingsStore.SettingsUISt
 
     sealed interface Intent {
         data class ChangeAppTheme(val new: AppThemeEnum): Intent
+        data object LogOut: Intent
     }
 
     data class SettingsUIState(
         val userName: String = "",
         val userEmail: String = "",
-        val appThemeSection: AppThemeSection = AppThemeSection()
+        val sections: List<SettingsSection> = listOf(
+            SettingsSection.Appearence()
+        )
     )
 
-    data class AppThemeSection(
-        val selectedTheme: AppThemeEnum = AppThemeEnum.DEFAULT
+    sealed interface SettingsSection {
+        data class Appearence(var selectedTheme: AppThemeEnum = AppThemeEnum.DEFAULT): SettingsSection
+        data class Default(val cells: List<SettingsCell>): SettingsSection
+    }
+
+    data class SettingsCell(
+        val title: String,
+        val info: String? = null
     )
 
     sealed interface Action {
